@@ -9,6 +9,7 @@ $redirect_to = $_GET['redirect_to'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -107,4 +108,5 @@ $redirect_to = $_GET['redirect_to'] ?? '';
         body.auth-page { font-family: 'Outfit', sans-serif; }
     </style>
 </body>
+
 </html>
