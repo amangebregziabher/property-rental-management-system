@@ -203,7 +203,7 @@ unset($_SESSION['form_errors']);
 
                                     <div class="mt-5 d-flex gap-3">
                                         <button type="submit" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
-                                            Save Listing <i class="bi bi-cloud-arrow-up fs-5"></i>
+                                            Publish Property <i class="bi bi-cloud-arrow-up fs-5"></i>
                                         </button>
                                         <a href="property_list.php" class="btn btn-outline-secondary px-4 d-flex align-items-center">Cancel</a>
                                     </div>
