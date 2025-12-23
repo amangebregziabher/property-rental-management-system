@@ -2,8 +2,8 @@
 /**
  * Add Property Backend Handler
  * 
- * handles property creation including form validation
- * and database insertion.
+ * handles property creation including form validation,
+ * image uploads, and database insertion.
  */
 
 session_start();
@@ -60,7 +60,60 @@ if (empty($status) || !in_array($status, $valid_statuses)) {
 }
 
 // ============================================
-// STEP 3: IF ERRORS, REDIRECT BACK
+// STEP 3: VALIDATE IMAGE UPLOADS
+// ============================================
+$allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+$allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+$max_file_size = 5 * 1024 * 1024; // 5MB
+$uploaded_images = [];
+
+if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
+    $file_count = count($_FILES['images']['name']);
+    
+    for ($i = 0; $i < $file_count; $i++) {
+        // Skip if no file uploaded
+        if ($_FILES['images']['error'][$i] === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+        
+        // Check for upload errors
+        if ($_FILES['images']['error'][$i] !== UPLOAD_ERR_OK) {
+            $errors[] = "Error uploading image " . ($i + 1);
+            continue;
+        }
+        
+        $file_name = $_FILES['images']['name'][$i];
+        $file_size = $_FILES['images']['size'][$i];
+        $file_tmp = $_FILES['images']['tmp_name'][$i];
+        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+        
+        // Validate file type
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $file_type = finfo_file($finfo, $file_tmp);
+        finfo_close($finfo);
+        
+        if (!in_array($file_type, $allowed_types) || !in_array($file_ext, $allowed_extensions)) {
+            $errors[] = "Image " . ($i + 1) . " has an invalid file type. Allowed: JPG, PNG, GIF";
+            continue;
+        }
+        
+        // Validate file size
+        if ($file_size > $max_file_size) {
+            $errors[] = "Image " . ($i + 1) . " exceeds the 5MB size limit";
+            continue;
+        }
+        
+        // Store valid file info for later upload
+        $uploaded_images[] = [
+            'tmp_name' => $file_tmp,
+            'extension' => $file_ext,
+            'original_name' => $file_name
+        ];
+    }
+}
+
+// ============================================
+// STEP 4: IF ERRORS, REDIRECT BACK
 // ============================================
 if (!empty($errors)) {
     $_SESSION['form_errors'] = $errors;
@@ -77,12 +130,12 @@ if (!empty($errors)) {
 }
 
 // ============================================
-// STEP 4: DATABASE CONNECTION
+// STEP 5: DATABASE CONNECTION
 // ============================================
 $conn = get_db_connection();
 
 // ============================================
-// STEP 5: INSERT PROPERTY INTO DATABASE
+// STEP 6: INSERT PROPERTY INTO DATABASE
 // ============================================
 // For prototype, use owner_id = 1
 $owner_id = 1;
@@ -107,14 +160,52 @@ if (!mysqli_stmt_execute($stmt)) {
     exit();
 }
 
+$property_id = mysqli_insert_id($conn);
 mysqli_stmt_close($stmt);
 
 // ============================================
-// STEP 6: CLOSE CONNECTION AND REDIRECT
+// STEP 7: HANDLE IMAGE UPLOADS
+// ============================================
+$upload_dir = __DIR__ . '/../../images/';
+
+// Create upload directory if it doesn't exist
+if (!is_dir($upload_dir)) {
+    mkdir($upload_dir, 0755, true);
+}
+
+$image_upload_success = true;
+foreach ($uploaded_images as $index => $image) {
+    // Generate unique filename
+    $new_filename = 'property_' . $property_id . '_' . time() . '_' . $index . '.' . $image['extension'];
+    $destination = $upload_dir . $new_filename;
+    
+    if (move_uploaded_file($image['tmp_name'], $destination)) {
+        // Insert image record into database
+        $is_primary = ($index === 0) ? 1 : 0;
+        $img_sql = "INSERT INTO property_images (property_id, image_path, is_primary) VALUES (?, ?, ?)";
+        $img_stmt = mysqli_prepare($conn, $img_sql);
+        
+        if ($img_stmt) {
+            mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_filename, $is_primary);
+            mysqli_stmt_execute($img_stmt);
+            mysqli_stmt_close($img_stmt);
+        }
+    } else {
+        $image_upload_success = false;
+    }
+}
+
+// ============================================
+// STEP 8: CLOSE CONNECTION AND REDIRECT
 // ============================================
 close_db_connection($conn);
 
-$_SESSION['success_message'] = "Property added successfully!";
+// Set success message
+if ($image_upload_success) {
+    $_SESSION['success_message'] = "Property added successfully!";
+} else {
+    $_SESSION['success_message'] = "Property added, but some images could not be uploaded.";
+}
 
 header('Location: ../views/property_list.php');
 exit();

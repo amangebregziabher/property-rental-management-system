@@ -47,7 +47,25 @@ if (!$property) {
 }
 
 // ============================================
-// STEP 4: DELETE FROM DATABASE
+// STEP 4: DELETE PROPERTY IMAGES FROM FILESYSTEM
+// ============================================
+$img_sql = "SELECT image_path FROM property_images WHERE property_id = ?";
+$img_stmt = mysqli_prepare($conn, $img_sql);
+mysqli_stmt_bind_param($img_stmt, "i", $property_id);
+mysqli_stmt_execute($img_stmt);
+$img_result = mysqli_stmt_get_result($img_stmt);
+
+$upload_dir = __DIR__ . '/../../images/';
+while ($image = mysqli_fetch_assoc($img_result)) {
+    $file_path = $upload_dir . $image['image_path'];
+    if (file_exists($file_path)) {
+        unlink($file_path);
+    }
+}
+mysqli_stmt_close($img_stmt);
+
+// ============================================
+// STEP 5: DELETE FROM DATABASE
 // ============================================
 // Note: property_images has ON DELETE CASCADE, so they will be deleted automatically
 $del_sql = "DELETE FROM properties WHERE id = ?";
