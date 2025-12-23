@@ -137,6 +137,36 @@ unset($_SESSION['form_errors']);
                                         <textarea class="form-control" id="description" name="description" rows="8"><?php echo htmlspecialchars($property['description']); ?></textarea>
                                     </div>
 
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold mb-3">Managed Gallery</h6>
+                                        <div class="row g-2 mb-3" id="property-gallery">
+                                            <?php foreach ($property_images as $index => $img): 
+                                                $path = $img['image_path'];
+                                                if (strpos($path, 'uploads/') === 0) {
+                                                    $path = str_replace('uploads/', '', $path);
+                                                }
+                                            ?>
+                                            <div class="col-4 image-container" id="image-<?php echo $img['id']; ?>">
+                                                <div class="position-relative group overflow-hidden rounded-3 shadow-sm">
+                                                    <img src="../../images/<?php echo htmlspecialchars($path); ?>" class="img-fluid border" alt="Property">
+                                                    <div class="image-overlay position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 opacity-0 transition d-flex align-items-center justify-content-center">
+                                                        <button type="button" class="btn btn-danger btn-sm rounded-circle p-2" onclick="removeImage(<?php echo $img['id']; ?>)">
+                                                            <i class="bi bi-trash fs-5"></i>
+                                                        </button>
+                                                    </div>
+                                                    <?php if ($img['is_primary']): ?>
+                                                        <span class="badge bg-primary position-absolute top-0 start-0 m-1">Main</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                            <div id="deleted-images"></div>
+                                        </div>
+                                        
+                                        <label class="form-label small text-secondary">Append New Visuals</label>
+                                        <input type="file" class="form-control mb-2" id="images" name="images[]" multiple accept="image/*">
+                                        <small class="text-secondary op-75">Adding images will not delete existing ones unless explicitly removed.</small>
+                                    </div>
                                 </div>
 
                                 <!-- Right Column: Variable Data -->
