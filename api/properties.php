@@ -1,0 +1,221 @@
+<?php
+/**
+ * API Endpoint for Property Management
+ * Handles creating new properties via POST request
+ */
+
+// Headers
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *'); // Configure as needed for production
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+// Handle preflight request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  http_response_code(200);
+  exit();
+}
+
+// Start session to access authentication if available
+session_start();
+
+// Include database connection
+require_once __DIR__ . '/../config/db_connect.php';
+
+// Helper function to send JSON response
+function send_response($success, $message, $data = [], $errors = [], $code = 200)
+{
+  http_response_code($code);
+  echo json_encode([
+    'success' => $success,
+    'message' => $message,
+    'data' => $data,
+    'errors' => $errors
+  ]);
+  exit();
+}
+
+// Only allow POST methods
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  send_response(false, 'Invalid request method. Only POST is allowed.', [], [], 405);
+}
+
+// Check authentication - fallback to ID 1 for prototype if not logged in
+$owner_id = $_SESSION['user_id'] ?? 1;
+
+// Initialize variables
+$errors = [];
+$input = [];
+
+// Check if content type is JSON
+$content_type = $_SERVER['CONTENT_TYPE'] ?? '';
+if (strpos($content_type, 'application/json') !== false) {
+  // Read JSON input
+  $json = file_get_contents('php://input');
+  $input = json_decode($json, true) ?? [];
+} else {
+  // Read Form Data
+  $input = $_POST;
+}
+
+// Map 'type' to 'property_type' if needed
+if (isset($input['type']) && !isset($input['property_type'])) {
+  $input['property_type'] = $input['type'];
+}
+
+// --- Validation ---
+
+$title = trim($input['title'] ?? '');
+$description = trim($input['description'] ?? '');
+$price = $input['price'] ?? '';
+$location = trim($input['location'] ?? '');
+$property_type = $input['property_type'] ?? '';
+$status = $input['status'] ?? 'Available';
+
+// Validate Title
+if (empty($title)) {
+  $errors[] = "Property title is required";
+} elseif (strlen($title) > 255) {
+  $errors[] = "Property title must be less than 255 characters";
+}
+
+// Validate Price
+if (empty($price)) {
+  $errors[] = "Monthly rent is required";
+} elseif (!is_numeric($price) || floatval($price) <= 0) {
+  $errors[] = "Monthly rent must be a positive number";
+}
+
+// Validate Location
+if (empty($location)) {
+  $errors[] = "Location is required";
+}
+
+// Validate Property Type
+$valid_types = ['Apartment', 'House', 'Condo', 'Studio', 'Villa', 'Townhouse'];
+if (empty($property_type) || !in_array($property_type, $valid_types)) {
+  $errors[] = "Invalid property type selected. Valid types: " . implode(', ', $valid_types);
+}
+
+// Validate Status
+$valid_statuses = ['Available', 'Rented', 'Maintenance'];
+if (!in_array($status, $valid_statuses)) {
+  $errors[] = "Invalid property status selected";
+}
+
+// Return errors if any
+if (!empty($errors)) {
+  send_response(false, 'Validation failed', [], $errors, 400);
+}
+
+// --- Image Validation (Only for multipart/form-data) ---
+$uploaded_images = [];
+$max_file_size = 5 * 1024 * 1024; // 5MB
+$allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+$allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+
+if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
+  $file_count = count($_FILES['images']['name']);
+
+  for ($i = 0; $i < $file_count; $i++) {
+    if ($_FILES['images']['error'][$i] === UPLOAD_ERR_NO_FILE)
+      continue;
+
+    if ($_FILES['images']['error'][$i] !== UPLOAD_ERR_OK) {
+      $errors[] = "Error uploading image " . ($i + 1);
+      continue;
+    }
+
+    $file_name = $_FILES['images']['name'][$i];
+    $file_size = $_FILES['images']['size'][$i];
+    $file_tmp = $_FILES['images']['tmp_name'][$i];
+    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $file_mime = finfo_file($finfo, $file_tmp);
+    finfo_close($finfo);
+
+    if (!in_array($file_mime, $allowed_types) || !in_array($file_ext, $allowed_extensions)) {
+      $errors[] = "Image " . ($i + 1) . " has an invalid file type.";
+      continue;
+    }
+
+    if ($file_size > $max_file_size) {
+      $errors[] = "Image " . ($i + 1) . " exceeds the 5MB size limit";
+      continue;
+    }
+
+    $uploaded_images[] = [
+      'tmp_name' => $file_tmp,
+      'extension' => $file_ext,
+      'original_name' => $file_name
+    ];
+  }
+}
+
+if (!empty($errors)) {
+  send_response(false, 'Image validation failed', [], $errors, 400);
+}
+
+// --- Database Insertion ---
+
+$conn = get_db_connection();
+
+try {
+  // Insert Property
+  // Actual DB uses 'type' and 'property_images' uses 'is_primary'
+  $sql = "INSERT INTO properties (owner_id, title, description, price, location, type, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+  $stmt = mysqli_prepare($conn, $sql);
+
+  if (!$stmt) {
+    throw new Exception("Database prepare error: " . mysqli_error($conn));
+  }
+
+  mysqli_stmt_bind_param($stmt, "issdsss", $owner_id, $title, $description, $price, $location, $property_type, $status);
+
+  if (!mysqli_stmt_execute($stmt)) {
+    throw new Exception("Database execute error: " . mysqli_stmt_error($stmt));
+  }
+
+  $property_id = mysqli_insert_id($conn);
+  mysqli_stmt_close($stmt);
+
+  // Handle Image Uploads
+  $upload_dir = __DIR__ . '/../images/';
+  if (!is_dir($upload_dir)) {
+    if (!mkdir($upload_dir, 0755, true)) {
+      // Log warning but don't fail property creation? Or throw?
+      // Proceeding for now.
+    }
+  }
+
+  $images_saved = 0;
+  foreach ($uploaded_images as $index => $image) {
+    $new_filename = 'property_' . $property_id . '_' . time() . '_' . $index . '.' . $image['extension'];
+    $destination = $upload_dir . $new_filename;
+
+    if (move_uploaded_file($image['tmp_name'], $destination)) {
+      $is_primary = ($index === 0) ? 1 : 0;
+      $img_sql = "INSERT INTO property_images (property_id, image_path, is_primary) VALUES (?, ?, ?)";
+      $img_stmt = mysqli_prepare($conn, $img_sql);
+      if ($img_stmt) {
+        mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_filename, $is_primary);
+        mysqli_stmt_execute($img_stmt);
+        mysqli_stmt_close($img_stmt);
+        $images_saved++;
+      }
+    }
+  }
+
+  close_db_connection($conn);
+
+  send_response(true, 'Property created successfully', [
+    'property_id' => $property_id,
+    'images_saved' => $images_saved
+  ]);
+
+} catch (Exception $e) {
+  if (isset($conn))
+    close_db_connection($conn);
+  send_response(false, 'Database error: ' . $e->getMessage(), [], [], 500);
+}
