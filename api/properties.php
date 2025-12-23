@@ -162,6 +162,9 @@ if (!empty($errors)) {
 $conn = get_db_connection();
 
 try {
+  // Start Transaction
+  mysqli_begin_transaction($conn);
+
   // Insert Property
   // Actual DB uses 'type' and 'property_images' uses 'is_primary'
   $sql = "INSERT INTO properties (owner_id, title, description, price, location, type, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -184,29 +187,45 @@ try {
   $upload_dir = __DIR__ . '/../images/';
   if (!is_dir($upload_dir)) {
     if (!mkdir($upload_dir, 0755, true)) {
-      // Log warning but don't fail property creation? Or throw?
-      // Proceeding for now.
+      throw new Exception("Failed to create image upload directory");
     }
   }
 
   $images_saved = 0;
+  $saved_files = []; // Track files to delete on rollback if needed
+
   foreach ($uploaded_images as $index => $image) {
     $new_filename = 'property_' . $property_id . '_' . time() . '_' . $index . '.' . $image['extension'];
     $destination = $upload_dir . $new_filename;
 
     if (move_uploaded_file($image['tmp_name'], $destination)) {
+      $saved_files[] = $destination; // Keep track
+
       $is_primary = ($index === 0) ? 1 : 0;
       $img_sql = "INSERT INTO property_images (property_id, image_path, is_primary) VALUES (?, ?, ?)";
       $img_stmt = mysqli_prepare($conn, $img_sql);
+
       if ($img_stmt) {
         mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_filename, $is_primary);
-        mysqli_stmt_execute($img_stmt);
+        if (!mysqli_stmt_execute($img_stmt)) {
+          mysqli_stmt_close($img_stmt);
+          throw new Exception("Failed to save image record to database");
+        }
         mysqli_stmt_close($img_stmt);
         $images_saved++;
+      } else {
+        throw new Exception("Database prepare error for images: " . mysqli_error($conn));
       }
+    } else {
+      // If file move fails, we consider this a critical error for integrity or just skip?
+      // User asked for "proper linking and transactional integrity".
+      // It's cleaner to fail the whole request if an image upload fails so user knows to retry.
+      throw new Exception("Failed to upload image file: " . $image['original_name']);
     }
   }
 
+  // Commit Transaction
+  mysqli_commit($conn);
   close_db_connection($conn);
 
   send_response(true, 'Property created successfully', [
@@ -215,7 +234,18 @@ try {
   ]);
 
 } catch (Exception $e) {
-  if (isset($conn))
+  if (isset($conn)) {
+    mysqli_rollback($conn);
     close_db_connection($conn);
+  }
+
+  // Optional: Cleanup files that were moved before the error occurred
+  if (isset($saved_files)) {
+    foreach ($saved_files as $file) {
+      if (file_exists($file))
+        unlink($file);
+    }
+  }
+
   send_response(false, 'Database error: ' . $e->getMessage(), [], [], 500);
 }
