@@ -3,6 +3,7 @@
  * Property Rental Management System
  * Entry Point
  */
+session_start();
 
 define('BASE_PATH', dirname(__DIR__));
 define('APP_PATH', BASE_PATH . '/app');
@@ -35,9 +36,24 @@ define('APP_PATH', BASE_PATH . '/app');
                     <li class="nav-item">
                         <a class="nav-link" href="../app/views/tenant_view.php">Find a Home</a>
                     </li>
-                    <li class="nav-item ms-lg-3">
-                        <a href="../app/views/login.php" class="btn btn-outline-primary btn-sm px-4">Owner Portal</a>
-                    </li>
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <li class="nav-item dropdown ms-lg-3">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle fs-5"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
+                                <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
+                                    <li><a class="dropdown-item" href="../app/views/property_list.php">Owner Dashboard</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                <?php endif; ?>
+                                <li><a class="dropdown-item text-danger" href="../app/controllers/auth_controller.php?action=logout">Logout</a></li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item ms-lg-3">
+                            <a href="../app/views/login.php" class="btn btn-outline-primary btn-sm px-4">Owner Portal</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>

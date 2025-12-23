@@ -1,6 +1,12 @@
 <?php
 session_start();
 
+// Access control: Only owners and admins can access this page
+if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] !== 'owner' && $_SESSION['user_role'] !== 'admin')) {
+    header('Location: login.php?redirect_to=' . urlencode($_SERVER['REQUEST_URI']));
+    exit();
+}
+
 // Get form data and errors from session (if any)
 $form_data = $_SESSION['form_data'] ?? [];
 $errors = $_SESSION['form_errors'] ?? [];
@@ -33,10 +39,17 @@ unset($_SESSION['form_errors']);
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="property_list.php">Properties</a>
+                        <a class="nav-link" href="tenant_view.php">Browse Listing</a>
                     </li>
-                    <li class="nav-item ms-lg-3">
-                        <a href="login.php" class="btn btn-outline-primary btn-sm px-4">Logout</a>
+                    <li class="nav-item dropdown ms-lg-3">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#" id="ownerDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle fs-5"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
+                            <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="../controllers/auth_controller.php?action=logout">Logout</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>

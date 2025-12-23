@@ -68,9 +68,24 @@ close_db_connection($conn);
                     <li class="nav-item">
                         <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="login.php">Owner Login</a>
-                    </li>
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <li class="nav-item dropdown ms-lg-3">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle fs-5"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
+                                <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
+                                    <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                <?php endif; ?>
+                                <li><a class="dropdown-item text-danger" href="../controllers/auth_controller.php?action=logout">Logout</a></li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item ms-lg-3">
+                            <a href="login.php" class="btn btn-outline-primary btn-sm px-4">Owner Login</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -164,11 +179,21 @@ close_db_connection($conn);
 
                             <div class="contact-card p-4 rounded-4 bg-primary bg-gradient text-white mb-5 shadow-sm">
                                 <h5 class="fw-bold mb-3">Interested in this property?</h5>
-                                <p class="small opacity-75 mb-4">Contact our leasing agent or schedule an in-person tour today.</p>
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-white fw-bold py-3"><i class="bi bi-calendar-check me-2"></i> Schedule a Tour</button>
-                                    <button class="btn btn-outline-white fw-bold py-3"><i class="bi bi-chat-dots me-2"></i> Send Inquiry</button>
-                                </div>
+                                <?php if (isset($_SESSION['user_id'])): ?>
+                                    <p class="small opacity-75 mb-4">Contact our leasing agent or schedule an in-person tour today.</p>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-white fw-bold py-3"><i class="bi bi-calendar-check me-2"></i> Schedule a Tour</button>
+                                        <button class="btn btn-outline-white fw-bold py-3"><i class="bi bi-chat-dots me-2"></i> Send Inquiry</button>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="small opacity-75 mb-4">Please sign in to your account to schedule a tour or send an inquiry to the owner.</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="login.php?redirect_to=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="btn btn-white fw-bold py-3">
+                                            <i class="bi bi-box-arrow-in-right me-2"></i> Sign in to Rent
+                                        </a>
+                                        <a href="register.php" class="btn btn-outline-white fw-bold py-3">Create Free Account</a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
                             <div class="text-center">
