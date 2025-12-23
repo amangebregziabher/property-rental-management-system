@@ -17,6 +17,7 @@ unset($_SESSION['form_errors']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,6 +29,7 @@ unset($_SESSION['form_errors']);
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
+
 <body class="beautified-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark glass-nav sticky-top">
@@ -42,13 +44,18 @@ unset($_SESSION['form_errors']);
                         <a class="nav-link" href="tenant_view.php">Browse Listing</a>
                     </li>
                     <li class="nav-item dropdown ms-lg-3">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#" id="ownerDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle fs-5"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#"
+                            id="ownerDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
                             <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="../controllers/auth_controller.php?action=logout">Logout</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item text-danger"
+                                    href="../controllers/auth_controller.php?action=logout">Logout</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -67,21 +74,21 @@ unset($_SESSION['form_errors']);
 
         <!-- Success/Error Messages -->
         <?php if (!empty($errors)): ?>
-        <div class="row mb-4 animate-up">
-            <div class="col-lg-10 mx-auto">
-                <div class="alert alert-danger border-0 shadow-sm glass-panel" role="alert">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-exclamation-triangle-fill fs-4 text-danger"></i>
-                        <h5 class="mb-0 fw-bold text-danger">Validation Errors</h5>
+            <div class="row mb-4 animate-up">
+                <div class="col-lg-10 mx-auto">
+                    <div class="alert alert-danger border-0 shadow-sm glass-panel" role="alert">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 text-danger"></i>
+                            <h5 class="mb-0 fw-bold text-danger">Validation Errors</h5>
+                        </div>
+                        <ul class="mb-0 ms-4">
+                            <?php foreach ($errors as $error): ?>
+                                <li class="fw-medium"><?php echo htmlspecialchars($error); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
-                    <ul class="mb-0 ms-4">
-                        <?php foreach ($errors as $error): ?>
-                            <li class="fw-medium"><?php echo htmlspecialchars($error); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
                 </div>
             </div>
-        </div>
         <?php endif; ?>
 
         <div class="row animate-up" style="animation-delay: 0.1s;">
@@ -92,53 +99,46 @@ unset($_SESSION['form_errors']);
                             <div class="row g-4">
                                 <!-- Left Column: Core Data -->
                                 <div class="col-md-7">
-                                    <h5 class="fw-bold border-start border-primary border-4 ps-3 mb-4">Core Information</h5>
-                                    
+                                    <h5 class="fw-bold border-start border-primary border-4 ps-3 mb-4">Core Information
+                                    </h5>
+
                                     <div class="mb-4">
-                                        <label for="title" class="form-label font-heading">Property Title <span class="text-danger">*</span></label>
+                                        <label for="title" class="form-label font-heading">Property Title <span
+                                                class="text-danger">*</span></label>
                                         <div class="input-group">
-                                            <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-fonts"></i></span>
-                                            <input 
-                                                type="text" 
-                                                class="form-control border-start-0" 
-                                                id="title" 
-                                                name="title" 
+                                            <span
+                                                class="input-group-text bg-transparent border-end-0 rounded-start-3"><i
+                                                    class="bi bi-fonts"></i></span>
+                                            <input type="text" class="form-control border-start-0" id="title"
+                                                name="title"
                                                 value="<?php echo htmlspecialchars($form_data['title'] ?? ''); ?>"
-                                                placeholder="e.g. Modern Apartment in Downtown"
-                                                required
-                                            >
+                                                placeholder="e.g. Modern Apartment in Downtown" required>
                                         </div>
                                     </div>
 
                                     <div class="mb-4">
-                                        <label for="description" class="form-label font-heading">Property Description</label>
-                                        <textarea 
-                                            class="form-control" 
-                                            id="description" 
-                                            name="description" 
-                                            rows="8" 
-                                            placeholder="Describe the property features, amenities, and surroundings..."
-                                        ><?php echo htmlspecialchars($form_data['description'] ?? ''); ?></textarea>
+                                        <label for="description" class="form-label font-heading">Property
+                                            Description</label>
+                                        <textarea class="form-control" id="description" name="description" rows="8"
+                                            placeholder="Describe the property features, amenities, and surroundings..."><?php echo htmlspecialchars($form_data['description'] ?? ''); ?></textarea>
                                     </div>
 
                                     <!-- Image Upload Field -->
                                     <div class="mb-4">
                                         <h6 class="fw-bold mb-3">Gallery Management</h6>
                                         <div class="mb-3">
-                                            <label for="images" class="form-label small text-secondary">Upload Property Photos</label>
+                                            <label for="images" class="form-label small text-secondary">Upload Property
+                                                Photos</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-images"></i></span>
-                                                <input 
-                                                    type="file" 
-                                                    class="form-control border-start-0" 
-                                                    id="images" 
-                                                    name="images[]" 
-                                                    multiple
-                                                    accept="image/*"
-                                                >
+                                                <span
+                                                    class="input-group-text bg-transparent border-end-0 rounded-start-3"><i
+                                                        class="bi bi-images"></i></span>
+                                                <input type="file" class="form-control border-start-0" id="images"
+                                                    name="images[]" multiple accept="image/*">
                                             </div>
                                             <small class="form-text text-muted mt-2 d-block">
-                                                <i class="bi bi-info-circle me-1"></i> You can select multiple images. Formats: JPG, PNG, GIF (Max 5MB each)
+                                                <i class="bi bi-info-circle me-1"></i> You can select multiple images.
+                                                Formats: JPG, PNG, GIF (Max 5MB each)
                                             </small>
                                         </div>
                                     </div>
@@ -146,44 +146,39 @@ unset($_SESSION['form_errors']);
 
                                 <!-- Right Column: Market Data -->
                                 <div class="col-md-5">
-                                    <h5 class="fw-bold border-start border-secondary border-4 ps-3 mb-4">Market Details</h5>
-                                    
+                                    <h5 class="fw-bold border-start border-secondary border-4 ps-3 mb-4">Market Details
+                                    </h5>
+
                                     <div class="mb-4">
-                                        <label for="price" class="form-label font-heading">Monthly Rent (USD) <span class="text-danger">*</span></label>
+                                        <label for="price" class="form-label font-heading">Monthly Rent (USD) <span
+                                                class="text-danger">*</span></label>
                                         <div class="input-group">
-                                            <span class="input-group-text bg-transparent border-end-0 rounded-start-3">$</span>
-                                            <input 
-                                                type="number" 
-                                                class="form-control border-start-0 h-auto" 
-                                                id="price" 
-                                                name="price" 
-                                                step="0.01" 
-                                                min="0"
+                                            <span
+                                                class="input-group-text bg-transparent border-end-0 rounded-start-3">$</span>
+                                            <input type="number" class="form-control border-start-0 h-auto" id="price"
+                                                name="price" step="0.01" min="0"
                                                 value="<?php echo htmlspecialchars($form_data['price'] ?? ''); ?>"
-                                                placeholder="0.00"
-                                                required
-                                            >
+                                                placeholder="0.00" required>
                                         </div>
                                     </div>
 
                                     <div class="mb-4">
-                                        <label for="location" class="form-label font-heading">Location <span class="text-danger">*</span></label>
+                                        <label for="location" class="form-label font-heading">Location <span
+                                                class="text-danger">*</span></label>
                                         <div class="input-group">
-                                            <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-geo-alt"></i></span>
-                                            <input 
-                                                type="text" 
-                                                class="form-control border-start-0" 
-                                                id="location" 
-                                                name="location" 
+                                            <span
+                                                class="input-group-text bg-transparent border-end-0 rounded-start-3"><i
+                                                    class="bi bi-geo-alt"></i></span>
+                                            <input type="text" class="form-control border-start-0" id="location"
+                                                name="location"
                                                 value="<?php echo htmlspecialchars($form_data['location'] ?? ''); ?>"
-                                                placeholder="City, Area or Full Address"
-                                                required
-                                            >
+                                                placeholder="City, Area or Full Address" required>
                                         </div>
                                     </div>
 
                                     <div class="mb-4">
-                                        <label for="type" class="form-label font-heading">Property Type <span class="text-danger">*</span></label>
+                                        <label for="type" class="form-label font-heading">Property Type <span
+                                                class="text-danger">*</span></label>
                                         <select class="form-select border-3 h-auto" id="type" name="type" required>
                                             <option value="" disabled <?php echo empty($form_data['type']) ? 'selected' : ''; ?>>Select Type</option>
                                             <?php
@@ -197,28 +192,38 @@ unset($_SESSION['form_errors']);
                                     </div>
 
                                     <div class="mb-4">
-                                        <label for="status" class="form-label font-heading">Listing Status <span class="text-danger">*</span></label>
-                                        <div class="d-flex flex-column gap-2 bg-light bg-opacity-50 p-3 rounded-4 shadow-sm border border-light">
+                                        <label for="status" class="form-label font-heading">Listing Status <span
+                                                class="text-danger">*</span></label>
+                                        <div
+                                            class="d-flex flex-column gap-2 bg-light bg-opacity-50 p-3 rounded-4 shadow-sm border border-light">
                                             <div class="form-check custom-radio">
-                                                <input class="form-check-input" type="radio" name="status" id="statusAvailable" value="Available" <?php echo ($form_data['status'] ?? 'Available') === 'Available' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label text-success fw-bold p-1" for="statusAvailable">Available Now</label>
+                                                <input class="form-check-input" type="radio" name="status"
+                                                    id="statusAvailable" value="Available" <?php echo ($form_data['status'] ?? 'Available') === 'Available' ? 'checked' : ''; ?>>
+                                                <label class="form-check-label text-success fw-bold p-1"
+                                                    for="statusAvailable">Available Now</label>
                                             </div>
                                             <div class="form-check custom-radio border-top border-light-subtle pt-2">
-                                                <input class="form-check-input" type="radio" name="status" id="statusRented" value="Rented" <?php echo ($form_data['status'] ?? '') === 'Rented' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label text-danger fw-bold p-1" for="statusRented">Already Rented</label>
+                                                <input class="form-check-input" type="radio" name="status"
+                                                    id="statusRented" value="Rented" <?php echo ($form_data['status'] ?? '') === 'Rented' ? 'checked' : ''; ?>>
+                                                <label class="form-check-label text-danger fw-bold p-1"
+                                                    for="statusRented">Already Rented</label>
                                             </div>
                                             <div class="form-check custom-radio border-top border-light-subtle pt-2">
-                                                <input class="form-check-input" type="radio" name="status" id="statusMaintenance" value="Maintenance" <?php echo ($form_data['status'] ?? '') === 'Maintenance' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label text-warning fw-bold p-1" for="statusMaintenance">Under Maintenance</label>
+                                                <input class="form-check-input" type="radio" name="status"
+                                                    id="statusMaintenance" value="Maintenance" <?php echo ($form_data['status'] ?? '') === 'Maintenance' ? 'checked' : ''; ?>>
+                                                <label class="form-check-label text-warning fw-bold p-1"
+                                                    for="statusMaintenance">Under Maintenance</label>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="mt-5 d-flex gap-3">
-                                        <button type="submit" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+                                        <button type="submit"
+                                            class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
                                             Publish Property <i class="bi bi-cloud-arrow-up fs-5"></i>
                                         </button>
-                                        <a href="property_list.php" class="btn btn-outline-secondary px-4 d-flex align-items-center">Cancel</a>
+                                        <a href="property_list.php"
+                                            class="btn btn-outline-secondary px-4 d-flex align-items-center">Cancel</a>
                                     </div>
                                 </div>
                             </div>
@@ -231,5 +236,91 @@ unset($_SESSION['form_errors']);
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+
+            // Create alert container if it doesn't exist
+            let alertContainer = document.querySelector('.alert-container');
+            if (!alertContainer) {
+                alertContainer = document.createElement('div');
+                alertContainer.className = 'row mb-4 animate-up alert-container d-none';
+                alertContainer.innerHTML = `
+                <div class="col-lg-10 mx-auto">
+                    <div class="alert border-0 shadow-sm glass-panel" role="alert">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi fs-4 icon-placeholder"></i>
+                            <h5 class="mb-0 fw-bold title-placeholder"></h5>
+                        </div>
+                        <ul class="mb-0 ms-4 message-list"></ul>
+                    </div>
+                </div>
+            `;
+                // Insert before the card container
+                const cardContainer = document.querySelector('.col-lg-10.mx-auto').closest('.row');
+                cardContainer.parentNode.insertBefore(alertContainer, cardContainer);
+            }
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                // Reset previous alerts
+                alertContainer.classList.add('d-none');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+
+                // Disable button and show spinner
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Publishing...';
+
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch('../../api/properties.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showAlert('success', 'Success!', ['Property has been successfully listed. Redirecting...']);
+                        setTimeout(() => {
+                            window.location.href = 'property_list.php';
+                        }, 2000);
+                    } else {
+                        const errors = result.errors.length > 0 ? result.errors : [result.message || 'An unknown error occurred'];
+                        showAlert('danger', 'Validation Error', errors);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert('danger', 'System Error', ['Failed to connect to the server. Please try again.']);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            });
+
+            function showAlert(type, title, messages) {
+                alertContainer.classList.remove('d-none');
+                const alert = alertContainer.querySelector('.alert');
+                alert.className = `alert alert-${type} border-0 shadow-sm glass-panel`;
+
+                const icon = alertContainer.querySelector('.icon-placeholder');
+                icon.className = `bi fs-4 icon-placeholder bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} text-${type}`;
+
+                const titleEl = alertContainer.querySelector('.title-placeholder');
+                titleEl.className = `mb-0 fw-bold title-placeholder text-${type}`;
+                titleEl.textContent = title;
+
+                const list = alertContainer.querySelector('.message-list');
+                list.innerHTML = messages.map(msg => `<li class="fw-medium">${msg}</li>`).join('');
+
+                alertContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    </script>
 </body>
+
 </html>
