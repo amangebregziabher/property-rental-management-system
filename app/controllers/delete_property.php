@@ -15,8 +15,24 @@ require_once __DIR__ . '/../../config/db_connect.php';
 // ============================================
 $property_id = $_GET['id'] ?? $_POST['id'] ?? 0;
 
+// Helper function for sending JSON response
+function send_json_response($success, $message, $status_code = 200) {
+    header('Content-Type: application/json');
+    http_response_code($status_code);
+    echo json_encode(['success' => $success, 'message' => $message]);
+    exit();
+}
+
+// Check if it's an AJAX request
+$is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || 
+           (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
 if (empty($property_id) || !is_numeric($property_id) || intval($property_id) <= 0) {
-    $_SESSION['error_message'] = "Invalid property ID";
+    $error = "Invalid property ID";
+    if ($is_ajax) {
+        send_json_response(false, $error, 400);
+    }
+    $_SESSION['error_message'] = $error;
     header('Location: ../views/property_list.php');
     exit();
 }
@@ -40,7 +56,11 @@ $property = mysqli_fetch_assoc($result);
 mysqli_stmt_close($check_stmt);
 
 if (!$property) {
-    $_SESSION['error_message'] = "Property not found";
+    $error = "Property not found";
+    if ($is_ajax) {
+        send_json_response(false, $error, 404);
+    }
+    $_SESSION['error_message'] = $error;
     close_db_connection($conn);
     header('Location: ../views/property_list.php');
     exit();
@@ -51,7 +71,11 @@ if (!$property) {
 // ============================================
 // Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
-    $_SESSION['error_message'] = "Please login to perform this action";
+    $error = "Please login to perform this action";
+    if ($is_ajax) {
+        send_json_response(false, $error, 401);
+    }
+    $_SESSION['error_message'] = $error;
     close_db_connection($conn);
     header('Location: ../views/login.php?redirect_to=' . urlencode($_SERVER['REQUEST_URI']));
     exit();
@@ -62,7 +86,11 @@ $user_role = $_SESSION['user_role'] ?? 'tenant';
 
 // Only the owner or an admin can delete the property
 if ($user_id != $property['owner_id'] && $user_role !== 'admin') {
-    $_SESSION['error_message'] = "You are not authorized to delete this property";
+    $error = "You are not authorized to delete this property";
+    if ($is_ajax) {
+        send_json_response(false, $error, 403);
+    }
+    $_SESSION['error_message'] = $error;
     close_db_connection($conn);
     header('Location: ../views/property_list.php');
     exit();
@@ -95,9 +123,19 @@ $del_stmt = mysqli_prepare($conn, $del_sql);
 mysqli_stmt_bind_param($del_stmt, "i", $property_id);
 
 if (mysqli_stmt_execute($del_stmt)) {
-    $_SESSION['success_message'] = "Property deleted successfully";
+    $msg = "Property deleted successfully";
+    if ($is_ajax) {
+        close_db_connection($conn);
+        send_json_response(true, $msg);
+    }
+    $_SESSION['success_message'] = $msg;
 } else {
-    $_SESSION['error_message'] = "Error deleting property";
+    $error = "Error deleting property";
+    if ($is_ajax) {
+        close_db_connection($conn);
+        send_json_response(false, $error, 500);
+    }
+    $_SESSION['error_message'] = $error;
 }
 
 mysqli_stmt_close($del_stmt);

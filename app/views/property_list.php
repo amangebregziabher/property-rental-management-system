@@ -283,8 +283,22 @@ unset($_SESSION['error_message']);
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Keep Listing</button>
-                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger px-4">Delete Permanently</a>
+                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger px-4">Delete Permanently</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="deleteToast" class="toast glass-panel border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-transparent border-0 py-3">
+                <i id="toastIcon" class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
+                <strong class="me-auto text-white">Notification</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div id="toastBody" class="toast-body text-white-50 pb-3">
+                Action completed successfully.
             </div>
         </div>
     </div>
@@ -292,11 +306,109 @@ unset($_SESSION['error_message']);
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        let propertyToDelete = null;
+        let deleteModal = null;
+        let deleteToast = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteToast = new bootstrap.Toast(document.getElementById('deleteToast'));
+            
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                if (propertyToDelete) {
+                    performDelete(propertyToDelete);
+                }
+            });
+        });
+
         function confirmDelete(id) {
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            document.getElementById('confirmDeleteBtn').href = '../controllers/delete_property.php?id=' + id;
+            propertyToDelete = id;
             deleteModal.show();
         }
+
+        async function performDelete(id) {
+            try {
+                // Find the row and add deleting state
+                const row = document.querySelector(`tr:has(button[onclick="confirmDelete(${id})"])`);
+                if (row) row.classList.add('opacity-50', 'pointer-events-none');
+
+                const response = await fetch(`../controllers/delete_property.php?id=${id}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                deleteModal.hide();
+
+                if (data.success) {
+                    showToast(true, data.message);
+                    if (row) {
+                        row.classList.add('slide-out-left');
+                        setTimeout(() => {
+                            row.remove();
+                            updateQuickStats(); // Hypothetical stats update
+                            checkEmptyInventory();
+                        }, 500);
+                    }
+                } else {
+                    if (row) row.classList.remove('opacity-50', 'pointer-events-none');
+                    showToast(false, data.message);
+                }
+            } catch (error) {
+                deleteModal.hide();
+                showToast(false, "Network error occurred.");
+            }
+        }
+
+        function showToast(success, message) {
+            const icon = document.getElementById('toastIcon');
+            const body = document.getElementById('toastBody');
+            
+            icon.className = success ? 'bi bi-check-circle-fill me-2 fs-5 text-success' : 'bi bi-exclamation-triangle-fill me-2 fs-5 text-danger';
+            body.textContent = message;
+            deleteToast.show();
+        }
+
+        function updateQuickStats() {
+            // Update the "Total Assets" counter
+            const totalCounter = document.querySelector('.display-5.fw-bold');
+            if (totalCounter) {
+                let current = parseInt(totalCounter.textContent);
+                totalCounter.textContent = Math.max(0, current - 1);
+            }
+            // Ideally we'd update other stats too, but this requires more complex logic or a fresh summary fetch
+        }
+
+        function checkEmptyInventory() {
+            const tbody = document.querySelector('tbody');
+            if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="opacity-50 mb-3">
+                                <i class="bi bi-house-door display-1"></i>
+                            </div>
+                            <h4 class="text-white">Your inventory is empty.</h4>
+                            <p class="text-white-50">Start by listing your first property.</p>
+                            <a href="add_property.php" class="btn btn-sm btn-outline-primary mt-2 px-4 rounded-pill">Post New Listing</a>
+                        </td>
+                    </tr>`;
+            }
+        }
     </script>
+    <style>
+        .slide-out-left {
+            animation: slideOutLeft 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+        }
+
+        @keyframes slideOutLeft {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(-100%); opacity: 0; }
+        }
+
+        tr { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
 </body>
 </html>
