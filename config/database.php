@@ -7,7 +7,8 @@
  */
 
 return [
-    'host' => 'localhost',
+    'host' => '127.0.0.1',
+    'port' => '3300',
     'database' => 'prms_db',
     'username' => 'root',
     'password' => '',
