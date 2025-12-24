@@ -69,7 +69,7 @@ unset($_SESSION['form_errors']);
         <?php if (!empty($errors)): ?>
         <div class="row mb-4 animate-up">
             <div class="col-lg-10 mx-auto">
-                <div class="alert alert-danger border-0 shadow-sm glass-panel" role="alert">
+                <div class="alert alert-danger border-0 shadow-sm glass-panel text-white" role="alert">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-exclamation-triangle-fill fs-4 text-danger"></i>
                         <h5 class="mb-0 fw-bold text-danger">Validation Errors</h5>
@@ -198,16 +198,16 @@ unset($_SESSION['form_errors']);
 
                                     <div class="mb-4">
                                         <label for="status" class="form-label font-heading">Listing Status <span class="text-danger">*</span></label>
-                                        <div class="d-flex flex-column gap-2 bg-light bg-opacity-50 p-3 rounded-4 shadow-sm border border-light">
+                                        <div class="d-flex flex-column gap-2 bg-dark bg-opacity-25 p-3 rounded-4 shadow-sm border border-white border-opacity-10">
                                             <div class="form-check custom-radio">
                                                 <input class="form-check-input" type="radio" name="status" id="statusAvailable" value="Available" <?php echo ($form_data['status'] ?? 'Available') === 'Available' ? 'checked' : ''; ?>>
                                                 <label class="form-check-label text-success fw-bold p-1" for="statusAvailable">Available Now</label>
                                             </div>
-                                            <div class="form-check custom-radio border-top border-light-subtle pt-2">
+                                            <div class="form-check custom-radio border-top border-white border-opacity-10 pt-2">
                                                 <input class="form-check-input" type="radio" name="status" id="statusRented" value="Rented" <?php echo ($form_data['status'] ?? '') === 'Rented' ? 'checked' : ''; ?>>
                                                 <label class="form-check-label text-danger fw-bold p-1" for="statusRented">Already Rented</label>
                                             </div>
-                                            <div class="form-check custom-radio border-top border-light-subtle pt-2">
+                                            <div class="form-check custom-radio border-top border-white border-opacity-10 pt-2">
                                                 <input class="form-check-input" type="radio" name="status" id="statusMaintenance" value="Maintenance" <?php echo ($form_data['status'] ?? '') === 'Maintenance' ? 'checked' : ''; ?>>
                                                 <label class="form-check-label text-warning fw-bold p-1" for="statusMaintenance">Under Maintenance</label>
                                             </div>

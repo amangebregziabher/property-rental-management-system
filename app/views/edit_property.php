@@ -216,16 +216,16 @@ unset($_SESSION['form_errors']);
 
                                     <div class="mb-4">
                                         <label class="form-label">Current Availability Status <span class="text-danger">*</span></label>
-                                        <div class="d-flex flex-column gap-2 bg-light bg-opacity-50 p-3 rounded-4 shadow-sm border">
+                                        <div class="d-flex flex-column gap-2 bg-dark bg-opacity-25 p-3 rounded-4 shadow-sm border border-white border-opacity-10">
                                             <div class="form-check custom-radio">
                                                 <input class="form-check-input" type="radio" name="status" id="statusAvailable" value="Available" <?php echo $property['status'] === 'Available' ? 'checked' : ''; ?>>
                                                 <label class="form-check-label text-success fw-bold p-1" for="statusAvailable">Currently Available</label>
                                             </div>
-                                            <div class="form-check custom-radio border-top pt-2">
+                                            <div class="form-check custom-radio border-top border-white border-opacity-10 pt-2">
                                                 <input class="form-check-input" type="radio" name="status" id="statusRented" value="Rented" <?php echo $property['status'] === 'Rented' ? 'checked' : ''; ?>>
                                                 <label class="form-check-label text-danger fw-bold p-1" for="statusRented">Leased Out</label>
                                             </div>
-                                            <div class="form-check custom-radio border-top pt-2">
+                                            <div class="form-check custom-radio border-top border-white border-opacity-10 pt-2">
                                                 <input class="form-check-input" type="radio" name="status" id="statusMaintenance" value="Maintenance" <?php echo $property['status'] === 'Maintenance' ? 'checked' : ''; ?>>
                                                 <label class="form-check-label text-warning fw-bold p-1" for="statusMaintenance">Maintenance Mode</label>
                                             </div>
