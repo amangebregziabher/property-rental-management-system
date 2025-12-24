@@ -114,8 +114,8 @@ unset($_SESSION['error_message']);
                 <div class="card glass-panel border-0 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light bg-transparent">
-                                <tr class="text-secondary small text-uppercase fw-bold">
+                            <thead class="table-dark">
+                                <tr class="text-white small text-uppercase fw-bold">
                                     <th class="border-0 ps-4">Ref ID</th>
                                     <th class="border-0">Preview</th>
                                     <th class="border-0">Listing Title</th>
@@ -160,8 +160,8 @@ unset($_SESSION['error_message']);
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-dark"><?php echo htmlspecialchars($property['title']); ?></div>
-                                            <div class="small text-muted italic"><?php echo htmlspecialchars($property['type']); ?></div>
+                                            <div class="fw-bold text-white"><?php echo htmlspecialchars($property['title']); ?></div>
+                                            <div class="small text-white-50 italic"><?php echo htmlspecialchars($property['type']); ?></div>
                                         </td>
                                         <td class="fw-bold text-primary">$<?php echo number_format($property['price'], 2); ?></td>
                                         <td>
