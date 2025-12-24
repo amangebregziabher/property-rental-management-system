@@ -17,7 +17,7 @@ $conn = get_db_connection();
 // Fetch property details
 $sql = "SELECT p.*, u.name as owner_name FROM properties p 
         LEFT JOIN users u ON p.owner_id = u.id 
-        WHERE p.id = ? AND p.status = 'Available'";
+        WHERE p.id = ?";
 $stmt = mysqli_prepare($conn, $sql);
 mysqli_stmt_bind_param($stmt, "i", $property_id);
 mysqli_stmt_execute($stmt);
@@ -27,6 +27,19 @@ if (!$property) {
     close_db_connection($conn);
     header('Location: tenant_view.php');
     exit();
+}
+
+// Access Control: If property is not 'Available', only owner or admin can view it
+if ($property['status'] !== 'Available') {
+    $user_id = $_SESSION['user_id'] ?? 0;
+    $user_role = $_SESSION['user_role'] ?? 'tenant';
+    
+    if ($user_id != $property['owner_id'] && $user_role !== 'admin') {
+        close_db_connection($conn);
+        $_SESSION['error_message'] = "This property is no longer available for viewing.";
+        header('Location: tenant_view.php');
+        exit();
+    }
 }
 
 // Fetch all property images
