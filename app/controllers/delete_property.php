@@ -47,6 +47,28 @@ if (!$property) {
 }
 
 // ============================================
+// STEP 4: AUTHORIZATION CHECK
+// ============================================
+// Ensure user is logged in
+if (!isset($_SESSION['user_id'])) {
+    $_SESSION['error_message'] = "Please login to perform this action";
+    close_db_connection($conn);
+    header('Location: ../views/login.php?redirect_to=' . urlencode($_SERVER['REQUEST_URI']));
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['user_role'] ?? 'tenant';
+
+// Only the owner or an admin can delete the property
+if ($user_id != $property['owner_id'] && $user_role !== 'admin') {
+    $_SESSION['error_message'] = "You are not authorized to delete this property";
+    close_db_connection($conn);
+    header('Location: ../views/property_list.php');
+    exit();
+}
+
+// ============================================
 // STEP 4: DELETE PROPERTY IMAGES FROM FILESYSTEM
 // ============================================
 $img_sql = "SELECT image_path FROM property_images WHERE property_id = ?";

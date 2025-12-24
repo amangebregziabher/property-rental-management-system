@@ -17,7 +17,7 @@ define('APP_PATH', BASE_PATH . '/app');
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Google Fonts -->
@@ -159,16 +159,5 @@ define('APP_PATH', BASE_PATH . '/app');
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        .landing-page { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
-        .hero-section { min-height: 80vh; padding: 100px 0; }
-        .bg-blur-hero { position: absolute; top: -10%; right: -10%; width: 50%; height: 80%; background: radial-gradient(circle, rgba(13, 110, 253, 0.1) 0%, rgba(255, 255, 255, 0) 70%); filter: blur(80px); z-index: 0; }
-        .hero-image-container img { border-radius: 40px; box-shadow: 0 50px 100px -20px rgba(0,0,0,0.15); }
-        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); }
-        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-        @keyframes bounce { 0%, 100% { transform: translateY(-50%) translateY(0); } 50% { transform: translateY(-50%) translateY(-10px); } }
-        .animate-bounce { animation: bounce 4s infinite ease-in-out; }
-        .btn-white { background-color: #fff; color: #334155; }
-    </style>
 </body>
 </html>
