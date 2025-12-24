@@ -7,7 +7,7 @@
 // Headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // Configure as needed for production
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 // Handle preflight request
@@ -35,13 +35,106 @@ function send_response($success, $message, $data = [], $errors = [], $code = 200
   exit();
 }
 
-// Only allow POST methods
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  send_response(false, 'Invalid request method. Only POST is allowed.', [], [], 405);
-}
-
 // Check authentication - fallback to ID 1 for prototype if not logged in
 $owner_id = $_SESSION['user_id'] ?? 1;
+
+// Handle DELETE request
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+  // Get ID from query string or JSON body
+  $property_id = $_GET['id'] ?? null;
+
+  if (!$property_id) {
+    // Try reading from body if not in query parameters
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+    $property_id = $data['id'] ?? null;
+  }
+
+  if (!$property_id) {
+    send_response(false, 'Property ID is required', [], [], 400);
+  }
+
+  $conn = get_db_connection();
+
+  try {
+    // Check property existence and ownership
+    $check_sql = "SELECT id, owner_id FROM properties WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $check_sql);
+    mysqli_stmt_bind_param($stmt, "i", $property_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $property = mysqli_fetch_assoc($result);
+    mysqli_stmt_close($stmt);
+
+    if (!$property) {
+      send_response(false, 'Property not found', [], [], 404);
+    }
+
+    if ($property['owner_id'] != $owner_id) {
+      send_response(false, 'Unauthorized: You do not own this property', [], [], 403);
+    }
+
+    // Get associated images to delete files from filesystem
+    // (Database records will be deleted via CASCADE, but we need paths first)
+    $img_sql = "SELECT image_path FROM property_images WHERE property_id = ?";
+    $stmt = mysqli_prepare($conn, $img_sql);
+    mysqli_stmt_bind_param($stmt, "i", $property_id);
+    mysqli_stmt_execute($stmt);
+    $res_images = mysqli_stmt_get_result($stmt);
+
+    $images_to_delete = [];
+    while ($row = mysqli_fetch_assoc($res_images)) {
+      $images_to_delete[] = $row['image_path'];
+    }
+    mysqli_stmt_close($stmt);
+
+    // Start Transaction
+    mysqli_begin_transaction($conn);
+
+    // Delete Property (Cascades to property_images)
+    $delete_sql = "DELETE FROM properties WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $delete_sql);
+    mysqli_stmt_bind_param($stmt, "i", $property_id);
+
+    if (!mysqli_stmt_execute($stmt)) {
+      throw new Exception("Failed to delete property record");
+    }
+    mysqli_stmt_close($stmt);
+
+    mysqli_commit($conn);
+    close_db_connection($conn);
+
+    // Remove files from filesystem
+    $deleted_files_count = 0;
+    $upload_dir = __DIR__ . '/../images/';
+
+    foreach ($images_to_delete as $img_file) {
+      $file_path = $upload_dir . $img_file;
+      if (file_exists($file_path)) {
+        if (unlink($file_path)) {
+          $deleted_files_count++;
+        }
+      }
+    }
+
+    send_response(true, 'Property and associated images deleted successfully', [
+      'property_id' => $property_id,
+      'deleted_images_count' => $deleted_files_count
+    ]);
+
+  } catch (Exception $e) {
+    if (isset($conn)) {
+      mysqli_rollback($conn);
+      close_db_connection($conn);
+    }
+    send_response(false, 'Error deleting property: ' . $e->getMessage(), [], [], 500);
+  }
+}
+
+// Only allow POST methods (for the remaining logic)
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  send_response(false, 'Invalid request method. Only POST and DELETE are allowed.', [], [], 405);
+}
 
 // Initialize variables
 $errors = [];
