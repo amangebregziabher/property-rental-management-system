@@ -10,21 +10,53 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] !== 'owner' && $_SES
 // Include database connection
 require_once __DIR__ . '/../../config/db_connect.php';
 
+$user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['user_role'] ?? 'tenant';
+
 // Fetch properties from database
 $conn = get_db_connection();
+
+// SQL differs based on role: Admin sees all, Owner sees only their own
 $sql = "SELECT p.*, u.name as owner_name,
         (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_primary DESC, id ASC LIMIT 1) as main_image
         FROM properties p 
-        LEFT JOIN users u ON p.owner_id = u.id 
-        ORDER BY p.created_at DESC";
+        LEFT JOIN users u ON p.owner_id = u.id ";
 
-$result = mysqli_query($conn, $sql);
-$properties = [];
-if ($result) {
-    while ($row = mysqli_fetch_assoc($result)) {
-        $properties[] = $row;
-    }
+if ($user_role !== 'admin') {
+    $sql .= " WHERE p.owner_id = ? ";
 }
+$sql .= " ORDER BY p.created_at DESC";
+
+$stmt = mysqli_prepare($conn, $sql);
+if ($user_role !== 'admin') {
+    mysqli_stmt_bind_param($stmt, "i", $user_id);
+}
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+
+$properties = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $properties[] = $row;
+}
+
+// Stats for dashboard
+$stats_sql = "SELECT 
+    COUNT(*) as total,
+    SUM(CASE WHEN status = 'Available' THEN 1 ELSE 0 END) as available,
+    SUM(CASE WHEN status = 'Rented' THEN 1 ELSE 0 END) as rented,
+    SUM(CASE WHEN status = 'Maintenance' THEN 1 ELSE 0 END) as maintenance
+    FROM properties ";
+
+if ($user_role !== 'admin') {
+    $stats_sql .= " WHERE owner_id = ? ";
+}
+
+$stats_stmt = mysqli_prepare($conn, $stats_sql);
+if ($user_role !== 'admin') {
+    mysqli_stmt_bind_param($stats_stmt, "i", $user_id);
+}
+mysqli_stmt_execute($stats_stmt);
+$stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stats_stmt));
 
 close_db_connection($conn);
 
@@ -51,21 +83,21 @@ unset($_SESSION['error_message']);
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark glass-nav sticky-top">
         <div class="container-fluid mx-4">
-            <a class="navbar-brand text-gradient fs-3" href="../../public/index.php">PRMS</a>
+            <a class="navbar-brand text-gradient fs-3 fw-bold" href="../../public/index.php">PRMS</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="tenant_view.php">Browse Listing</a>
+                        <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#" id="ownerDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle fs-5"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
-                            <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
+                            <li><span class="dropdown-item-text small text-muted">Role: <?php echo ucfirst($_SESSION['user_role']); ?></span></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="../controllers/auth_controller.php?action=logout">Logout</a></li>
                         </ul>
@@ -75,36 +107,64 @@ unset($_SESSION['error_message']);
         </div>
     </nav>
 
-    <div class="container py-5">
-        <!-- Dashboard Header -->
-        <div class="row mb-5 animate-up">
-            <div class="col-md-6 text-center text-md-start">
-                <h1 class="fw-bold text-gradient">Property Inventory</h1>
-                <p class="text-secondary lead">Manage and monitor all rental listings from one place.</p>
-            </div>
-            <div class="col-md-6 text-center text-md-end d-flex align-items-center justify-content-md-end gap-3 mt-4 mt-md-0">
-                <div class="bg-white bg-opacity-50 p-2 px-3 rounded-4 shadow-sm border border-white d-none d-lg-block">
-                    <span class="small text-muted text-uppercase fw-bold ls-1">Total Listings:</span>
-                    <span class="fs-4 fw-bold text-primary ms-2"><?php echo count($properties); ?></span>
+    <!-- Header Section -->
+    <header class="page-header py-5 bg-gradient-primary text-white position-relative overflow-hidden mb-5">
+        <div class="container position-relative z-1">
+            <div class="row align-items-center">
+                <div class="col-lg-7 mb-4 mb-lg-0">
+                    <h1 class="display-4 fw-bold mb-3 animate-up">Inventory Management</h1>
+                    <p class="lead opacity-75 animate-up" style="animation-delay: 0.1s;">Manage your listings, track availability, and oversee your rental portfolio.</p>
                 </div>
-                <a href="add_property.php" class="btn btn-primary px-4 py-2 rounded-3 shadow-sm d-flex align-items-center gap-2">
-                    <i class="bi bi-plus-circle-fill fs-5"></i> Add New Property
-                </a>
+                <div class="col-lg-5 text-lg-end animate-up" style="animation-delay: 0.2s;">
+                    <a href="add_property.php" class="btn btn-light btn-lg rounded-pill px-5 py-3 fw-bold shadow-lg">
+                        <i class="bi bi-plus-lg me-2 text-primary"></i> Post New Listing
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="bg-blur"></div>
+    </header>
+
+    <div class="container pb-5">
+        <!-- Stats Row -->
+        <div class="row g-4 mb-5 animate-up" style="animation-delay: 0.3s;">
+            <div class="col-md-3">
+                <div class="glass-panel p-4 rounded-4 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center">
+                    <div class="text-white-50 small fw-bold text-uppercase mb-1">Total Assets</div>
+                    <div class="display-5 fw-bold"><?php echo $stats['total']; ?></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-panel p-4 rounded-4 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center">
+                    <div class="text-success small fw-bold text-uppercase mb-1">Available</div>
+                    <div class="display-5 fw-bold"><?php echo $stats['available'] ?? 0; ?></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-panel p-4 rounded-4 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center">
+                    <div class="text-danger small fw-bold text-uppercase mb-1">Leased Out</div>
+                    <div class="display-5 fw-bold"><?php echo $stats['rented'] ?? 0; ?></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-panel p-4 rounded-4 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center">
+                    <div class="text-warning small fw-bold text-uppercase mb-1">In Maintenance</div>
+                    <div class="display-5 fw-bold"><?php echo $stats['maintenance'] ?? 0; ?></div>
+                </div>
             </div>
         </div>
 
-        <!-- Success/Error Messages -->
         <?php if ($success_message): ?>
-            <div class="alert alert-success alert-dismissible fade show glass-panel border-0 mb-4 animate-up" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> <?php echo htmlspecialchars($success_message); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-success alert-dismissible fade show glass-panel border-0 border-start border-4 border-success mb-4 animate-up text-white" role="alert">
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i> <strong>Success!</strong> <?php echo htmlspecialchars($success_message); ?>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
 
         <?php if ($error_message): ?>
-            <div class="alert alert-danger alert-dismissible fade show glass-panel border-0 mb-4 animate-up" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo htmlspecialchars($error_message); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-danger alert-dismissible fade show glass-panel border-0 border-start border-4 border-danger mb-4 animate-up text-white" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i> <strong>Error!</strong> <?php echo htmlspecialchars($error_message); ?>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
 
