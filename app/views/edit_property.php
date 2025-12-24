@@ -67,21 +67,21 @@ unset($_SESSION['form_errors']);
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark glass-nav sticky-top">
         <div class="container-fluid mx-4">
-            <a class="navbar-brand text-gradient fs-3" href="../../public/index.php">PRMS</a>
+            <a class="navbar-brand text-gradient fs-3 fw-bold" href="../../public/index.php">PRMS</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="tenant_view.php">Browse Listing</a>
+                        <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#" id="ownerDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle fs-5"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
-                            <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
+                            <li><span class="dropdown-item-text small text-muted">Role: <?php echo ucfirst($_SESSION['user_role']); ?></span></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="../controllers/auth_controller.php?action=logout">Logout</a></li>
                         </ul>
@@ -91,20 +91,24 @@ unset($_SESSION['form_errors']);
         </div>
     </nav>
 
-    <div class="container py-5">
-        <!-- Page Header -->
-        <div class="row mb-5 animate-up">
-            <div class="col-md-12 text-center text-md-start">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-2">
-                        <li class="breadcrumb-item"><a href="property_list.php" class="text-decoration-none">Inventory</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">#PROP-<?php echo str_pad($property['id'], 3, '0', STR_PAD_LEFT); ?></li>
-                    </ol>
-                </nav>
-                <h1 class="fw-bold text-gradient">Refine Listing</h1>
-                <p class="text-secondary lead">Update details for "<?php echo htmlspecialchars($property['title']); ?>"</p>
+    <!-- Header Section -->
+    <header class="page-header py-5 bg-gradient-primary text-white position-relative overflow-hidden mb-5">
+        <div class="container position-relative z-1">
+            <div class="row align-items-center">
+                <div class="col-lg-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-2">
+                            <li class="breadcrumb-item"><a href="property_list.php" class="text-white opacity-75 text-decoration-none">Dashboard</a></li>
+                            <li class="breadcrumb-item text-white active" aria-current="page">#PROP-<?php echo str_pad($property['id'], 3, '0', STR_PAD_LEFT); ?></li>
+                        </ol>
+                    </nav>
+                    <h1 class="display-4 fw-bold mb-3 animate-up">Refine Listing</h1>
+                    <p class="lead opacity-75 animate-up" style="animation-delay: 0.1s;">Update details for "<?php echo htmlspecialchars($property['title']); ?>"</p>
+                </div>
             </div>
         </div>
+        <div class="bg-blur"></div>
+    </header>
 
         <?php if (!empty($errors)): ?>
         <div class="row mb-4 animate-up">
@@ -248,6 +252,13 @@ unset($_SESSION['form_errors']);
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="footer py-5 glass-panel border-0 border-top mt-5">
+        <div class="container text-center">
+            <p class="text-white-50 mb-0 small">© 2024 PRMS - Your trusted partner in finding the perfect home.</p>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function removeImage(imageId) {
@@ -270,7 +281,7 @@ unset($_SESSION['form_errors']);
         .group:hover .image-overlay { opacity: 1 !important; }
         .transition { transition: all 0.3s ease; }
         .grayscale { filter: grayscale(1); }
-        .breadcrumb-item + .breadcrumb-item::before { color: #adb5bd; }
+        .breadcrumb-item + .breadcrumb-item::before { color: rgba(255, 255, 255, 0.3); }
     </style>
 </body>
 </html>
