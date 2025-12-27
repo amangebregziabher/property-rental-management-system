@@ -4,6 +4,26 @@
 CREATE DATABASE IF NOT EXISTS prms_db;
 USE prms_db;
 
+-- Disable foreign key checks to allow dropping tables with dependencies
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS property_amenities;
+DROP TABLE IF EXISTS property_images;
+DROP TABLE IF EXISTS property_documents;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS maintenance_requests;
+DROP TABLE IF EXISTS bookings;
+DROP TABLE IF EXISTS tenant_profiles;
+DROP TABLE IF EXISTS properties;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS amenities;
+DROP TABLE IF EXISTS users;
+
+-- Re-enable foreign key checks
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ============================================================================
 -- CORE TABLES
 -- ============================================================================
@@ -15,7 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('Admin', 'Owner', 'Tenant') NOT NULL DEFAULT 'Tenant',
+    role ENUM('admin', 'owner', 'tenant') NOT NULL DEFAULT 'tenant',
     phone VARCHAR(20),
     profile_image VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -79,7 +99,7 @@ CREATE TABLE IF NOT EXISTS properties (
     address TEXT,
     bedrooms INT UNSIGNED DEFAULT 0,
     bathrooms INT UNSIGNED DEFAULT 0,
-    area_sqft INT UNSIGNED,
+    type ENUM('Apartment', 'House', 'Condo', 'Studio', 'Villa', 'Townhouse') DEFAULT 'Apartment',
     status ENUM('Available', 'Rented', 'Maintenance') NOT NULL DEFAULT 'Available',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -258,6 +278,39 @@ CREATE TABLE IF NOT EXISTS reviews (
     INDEX (rating)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Table: rental_applications
+-- Tracks property rental applications
+CREATE TABLE IF NOT EXISTS rental_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    property_id INT NOT NULL,
+    user_id INT NULL,
+    applicant_name VARCHAR(255) NOT NULL,
+    applicant_email VARCHAR(255) NOT NULL,
+    applicant_phone VARCHAR(50),
+    message TEXT,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    occupants INT DEFAULT 1,
+    move_in_date DATE,
+    employer VARCHAR(255),
+    job_title VARCHAR(255),
+    monthly_income DECIMAL(10, 2),
+    employment_status VARCHAR(50),
+    id_document_path VARCHAR(255),
+    income_document_path VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_app_property
+        FOREIGN KEY (property_id) 
+        REFERENCES properties(id) 
+        ON DELETE CASCADE,
+    CONSTRAINT fk_app_user
+        FOREIGN KEY (user_id) 
+        REFERENCES users(id) 
+        ON DELETE SET NULL,
+    INDEX (property_id),
+    INDEX (user_id),
+    INDEX (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================================
 -- SAMPLE DATA
 -- ============================================================================
@@ -286,19 +339,19 @@ INSERT INTO amenities (name, icon) VALUES
 
 -- Insert sample users
 INSERT INTO users (name, email, password, role, phone) VALUES 
-('System Admin', 'admin@prms.com', '$2y$10$abcdefghijklmnopqrstuv', 'Admin', '+1234567890'),
-('John Smith', 'john.smith@prms.com', '$2y$10$abcdefghijklmnopqrstuv', 'Owner', '+1234567891'),
-('Jane Doe', 'jane.doe@prms.com', '$2y$10$abcdefghijklmnopqrstuv', 'Tenant', '+1234567892');
+('System Admin', 'admin@prms.com', '$2y$10$abcdefghijklmnopqrstuv', 'admin', '+1234567890'),
+('John Smith', 'john.smith@prms.com', '$2y$10$abcdefghijklmnopqrstuv', 'owner', '+1234567891'),
+('Jane Doe', 'jane.doe@prms.com', '$2y$10$abcdefghijklmnopqrstuv', 'tenant', '+1234567892');
 
 -- Insert sample tenant profile
 INSERT INTO tenant_profiles (user_id, employer_name, job_title, monthly_income) VALUES
 (3, 'Tech Corp', 'Software Developer', 5000.00);
 
 -- Insert sample properties
-INSERT INTO properties (owner_id, category_id, title, description, price, location, address, bedrooms, bathrooms, area_sqft, status) VALUES
-(2, 1, 'Modern Downtown Apartment', 'A beautiful 2-bedroom apartment in the heart of the city with stunning views.', 1200.00, 'Downtown, City Center', '123 Main Street, Apt 5B', 2, 2, 950, 'Available'),
-(2, 2, 'Cozy Suburban House', 'Perfect family home with a spacious backyard and quiet neighborhood.', 1800.00, 'Maple Street, Suburbs', '456 Maple Street', 3, 2, 1500, 'Available'),
-(2, 4, 'City Center Studio', 'Compact and efficient studio perfect for young professionals.', 800.00, 'Downtown', '789 Urban Ave, Unit 12', 1, 1, 450, 'Available');
+INSERT INTO properties (owner_id, category_id, title, description, price, location, address, bedrooms, bathrooms, type, status) VALUES
+(2, 1, 'Modern Downtown Apartment', 'A beautiful 2-bedroom apartment in the heart of the city with stunning views.', 1200.00, 'Downtown, City Center', '123 Main Street, Apt 5B', 2, 2, 'Apartment', 'Available'),
+(2, 2, 'Cozy Suburban House', 'Perfect family home with a spacious backyard and quiet neighborhood.', 1800.00, 'Maple Street, Suburbs', '456 Maple Street', 3, 2, 'House', 'Available'),
+(2, 4, 'City Center Studio', 'Compact and efficient studio perfect for young professionals.', 800.00, 'Downtown', '789 Urban Ave, Unit 12', 1, 1, 'Studio', 'Available');
 
 -- Insert sample property amenities
 INSERT INTO property_amenities (property_id, amenity_id) VALUES
