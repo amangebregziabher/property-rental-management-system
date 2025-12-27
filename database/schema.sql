@@ -60,3 +60,20 @@ INSERT INTO users (name, email, password) VALUES
 INSERT INTO properties (owner_id, title, description, price, location, property_type, status) VALUES
 (1, 'Modern Downtown Apartment', 'A beautiful 2-bedroom apartment in the heart of the city.', 1200.00, 'Downtown, City Center', 'Apartment', 'Available'),
 (2, 'Cozy Suburban House', 'Perfect family home with a spacious backyard.', 1800.00, 'Maple Street, Suburbs', 'House', 'Available');
+
+-- Table: property_documents
+-- Stores documents associated with a property (Leases, ID copies, etc.)
+CREATE TABLE IF NOT EXISTS property_documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    property_id INT NOT NULL,
+    document_name VARCHAR(255) NOT NULL,
+    document_path VARCHAR(255) NOT NULL,
+    document_type VARCHAR(50), -- e.g., 'Lease Agreement', 'Title Deed'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_document_property
+        FOREIGN KEY (property_id) 
+        REFERENCES properties(id) 
+        ON DELETE CASCADE,
+    INDEX (property_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
