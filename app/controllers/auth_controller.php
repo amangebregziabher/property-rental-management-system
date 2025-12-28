@@ -31,7 +31,8 @@ switch ($action) {
 /**
  * Handle user registration
  */
-function handleRegistration() {
+function handleRegistration()
+{
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         header('Location: ../views/register.php');
         exit();
@@ -44,10 +45,14 @@ function handleRegistration() {
 
     $errors = [];
 
-    if (empty($name)) $errors[] = "Name is required";
-    if (empty($email)) $errors[] = "Email is required";
-    if (empty($password)) $errors[] = "Password is required";
-    if (strlen($password) < 6) $errors[] = "Password must be at least 6 characters";
+    if (empty($name))
+        $errors[] = "Name is required";
+    if (empty($email))
+        $errors[] = "Email is required";
+    if (empty($password))
+        $errors[] = "Password is required";
+    if (strlen($password) < 6)
+        $errors[] = "Password must be at least 6 characters";
 
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
@@ -95,7 +100,8 @@ function handleRegistration() {
 /**
  * Handle user login
  */
-function handleLogin() {
+function handleLogin()
+{
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         header('Location: ../views/login.php');
         exit();
@@ -107,7 +113,7 @@ function handleLogin() {
 
     if (empty($email) || empty($password)) {
         $_SESSION['form_errors'] = ["Email and password are required"];
-        header('Location: ../views/login.php' . ($redirect ? "?redirect_to=".urlencode($redirect) : ""));
+        header('Location: ../views/login.php' . ($redirect ? "?redirect_to=" . urlencode($redirect) : ""));
         exit();
     }
 
@@ -124,6 +130,7 @@ function handleLogin() {
         // Login success
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_role'] = $user['role'];
 
         if (!empty($redirect)) {
@@ -140,7 +147,7 @@ function handleLogin() {
         }
     } else {
         $_SESSION['form_errors'] = ["Invalid email or password"];
-        header('Location: ../views/login.php' . ($redirect ? "?redirect_to=".urlencode($redirect) : ""));
+        header('Location: ../views/login.php' . ($redirect ? "?redirect_to=" . urlencode($redirect) : ""));
     }
     exit();
 }
@@ -148,7 +155,8 @@ function handleLogin() {
 /**
  * Handle user logout
  */
-function handleLogout() {
+function handleLogout()
+{
     session_destroy();
     header('Location: ../../public/index.php');
     exit();
