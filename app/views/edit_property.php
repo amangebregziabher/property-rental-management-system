@@ -192,12 +192,7 @@ unset($_SESSION['form_errors']);
                                                         </button>
                                                     </div>
                                                     <?php if ($img['is_main']): ?>
-<<<<<<< Updated upstream
-                                                        <span
-                                                            class="badge bg-primary position-absolute top-0 start-0 m-1">Main</span>
-=======
                                                         <span class="badge bg-primary position-absolute top-0 start-0 m-1">Main</span>
->>>>>>> Stashed changes
                                                     <?php endif; ?>
                                                 </div>
                                             </div>

@@ -13,9 +13,10 @@ $max_price = $_GET['max_price'] ?? '';
 // Fetch properties from database with filters
 $conn = get_db_connection();
 
-$sql = "SELECT p.*, 
+$sql = "SELECT p.*, c.name as type,
         (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_main DESC, id ASC LIMIT 1) as main_image
         FROM properties p 
+        LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.status = 'Available'";
 
 $params = [];
@@ -30,7 +31,7 @@ if (!empty($search)) {
 }
 
 if (!empty($type_filter)) {
-    $sql .= " AND p.type = ?";
+    $sql .= " AND c.name = ?";
     $params[] = $type_filter;
     $types .= "s";
 }
@@ -92,6 +93,11 @@ close_db_connection($conn);
                         <a class="nav-link active" href="tenant_view.php">Find Home</a>
                     </li>
                     <?php if (isset($_SESSION['user_id'])): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tenant_applications_list.php">My Applications</a>
+                    </li>
+                    <?php endif; ?>
+                    <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item dropdown ms-lg-3">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown"
                                 role="button" data-bs-toggle="dropdown">
@@ -131,6 +137,15 @@ close_db_connection($conn);
                 <div class="col-lg-6">
                     <div class="glass-panel p-4 rounded-4 shadow-lg">
                         <form action="tenant_view.php" method="GET" class="row g-3">
+                            <div class="col-12 text-center text-lg-start mb-4">
+                                <?php if (isset($_SESSION['user_id'])): ?>
+                                    <div class="d-inline-block bg-white bg-opacity-10 p-2 rounded-4 backdrop-blur">
+                                        <a href="tenant_applications_list.php" class="btn btn-outline-light d-flex align-items-center gap-2">
+                                            <i class="bi bi-file-earmark-text"></i> View My Applications
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>

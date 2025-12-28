@@ -108,7 +108,7 @@ if ($stmt) {
 
     if (mysqli_stmt_execute($stmt)) {
         $_SESSION['success_message'] = "Your application has been submitted successfully!";
-        header("Location: ../views/tenant_view.php");
+        header("Location: ../views/tenant_applications_list.php");
     } else {
         $_SESSION['form_errors'] = ["Error submitting application. Please try again."];
         header("Location: ../views/submit_application.php?property_id=$property_id");

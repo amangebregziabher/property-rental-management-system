@@ -81,9 +81,26 @@ mysqli_stmt_close($check_stmt);
 // ============================================
 // STEP 5: UPDATE CORE PROPERTY DATA
 // ============================================
-$sql = "UPDATE properties SET title = ?, description = ?, price = ?, location = ?, type = ?, status = ? WHERE id = ?";
+
+// Lookup category_id from type name
+$cat_sql = "SELECT id FROM categories WHERE name = ? LIMIT 1";
+$cat_stmt = mysqli_prepare($conn, $cat_sql);
+mysqli_stmt_bind_param($cat_stmt, "s", $type);
+mysqli_stmt_execute($cat_stmt);
+$cat_result = mysqli_stmt_get_result($cat_stmt);
+$category_row = mysqli_fetch_assoc($cat_result);
+$category_id = $category_row ? $category_row['id'] : null;
+
+if (!$category_id) {
+     $_SESSION['error_message'] = "Invalid category selected";
+     header("Location: ../views/edit_property.php?id=$property_id");
+     exit();
+}
+mysqli_stmt_close($cat_stmt);
+
+$sql = "UPDATE properties SET title = ?, description = ?, price = ?, location = ?, category_id = ?, status = ? WHERE id = ?";
 $stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "ssdsssi", $title, $description, $price, $location, $type, $status, $property_id);
+mysqli_stmt_bind_param($stmt, "ssdsisi", $title, $description, $price, $location, $category_id, $status, $property_id);
 
 if (!mysqli_stmt_execute($stmt)) {
     $_SESSION['error_message'] = "Error updating property details";
@@ -150,13 +167,7 @@ if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
 
             if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $upload_dir . $new_name)) {
                 // Determine if this should be primary (if none exists)
-<<<<<<< Updated upstream
-                $is_primary = (!$has_primary && $i === 0) ? 1 : 0;
-
-=======
                 $is_main = (!$has_primary && $i === 0) ? 1 : 0;
-                
->>>>>>> Stashed changes
                 $img_sql = "INSERT INTO property_images (property_id, image_path, is_main) VALUES (?, ?, ?)";
                 $img_stmt = mysqli_prepare($conn, $img_sql);
                 mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_name, $is_main);

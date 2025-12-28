@@ -105,13 +105,7 @@ if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
 
             if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $upload_dir . $new_name)) {
                 // Determine if this should be primary (if none exists)
-<<<<<<< Updated upstream
-                $is_primary = (!$has_primary && $uploaded_count === 0) ? 1 : 0;
-
-=======
                 $is_main = (!$has_primary && $uploaded_count === 0) ? 1 : 0;
-                
->>>>>>> Stashed changes
                 $img_sql = "INSERT INTO property_images (property_id, image_path, is_main) VALUES (?, ?, ?)";
                 $img_stmt = mysqli_prepare($conn, $img_sql);
                 mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_name, $is_main);
