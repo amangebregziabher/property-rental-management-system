@@ -99,6 +99,7 @@ close_db_connection($conn);
                                 <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">My Profile</a></li>
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
                                     <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
                                     <li>
@@ -219,7 +220,72 @@ close_db_connection($conn);
         </div>
     </footer>
 
+    <!-- Profile Update Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content glass-panel border-0">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Update Tenant Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <?php if (isset($_SESSION['form_errors'])): ?>
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                <?php foreach ($_SESSION['form_errors'] as $field => $errors): ?>
+                                    <?php foreach ($errors as $error): ?>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
+                                    <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </ul>
+                            <?php unset($_SESSION['form_errors']); ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if (isset($_SESSION['success_message'])): ?>
+                        <div class="alert alert-success">
+                            <?php echo htmlspecialchars($_SESSION['success_message']); ?>
+                            <?php unset($_SESSION['success_message']); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="../controllers/tenant_controller.php?action=update_profile" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Employer Name</label>
+                            <input type="text" name="employer_name" class="form-control" required value="<?php echo htmlspecialchars($_SESSION['form_data']['employer_name'] ?? ''); ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Job Title</label>
+                            <input type="text" name="job_title" class="form-control" required value="<?php echo htmlspecialchars($_SESSION['form_data']['job_title'] ?? ''); ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Monthly Income ($)</label>
+                            <input type="number" name="monthly_income" class="form-control" required min="0" step="0.01" value="<?php echo htmlspecialchars($_SESSION['form_data']['monthly_income'] ?? ''); ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Emergency Contact Name</label>
+                            <input type="text" name="emergency_contact_name" class="form-control" required value="<?php echo htmlspecialchars($_SESSION['form_data']['emergency_contact_name'] ?? ''); ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Emergency Contact Phone</label>
+                            <input type="tel" name="emergency_contact_phone" class="form-control" required value="<?php echo htmlspecialchars($_SESSION['form_data']['emergency_contact_phone'] ?? ''); ?>">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Profile</button>
+                    </form>
+                    <?php unset($_SESSION['form_data']); ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-open modal if there are errors or success messages
+        <?php if (isset($_SESSION['form_errors']) || isset($_SESSION['success_message'])): ?>
+            var myModal = new bootstrap.Modal(document.getElementById('profileModal'));
+            myModal.show();
+        <?php endif; ?>
+    </script>
 </body>
 
 </html>
