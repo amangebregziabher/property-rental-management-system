@@ -83,13 +83,26 @@ try {
     mysqli_stmt_close($stmt);
     close_db_connection($conn);
 
+    // Check if no applications were found
+    if (empty($applications)) {
+        send_response(true, 'No applications found. You haven\'t submitted any rental applications yet.', $applications);
+    }
+
     send_response(true, 'Applications retrieved successfully', $applications);
 
+} catch (mysqli_sql_exception $e) {
+    if ($conn) {
+        close_db_connection($conn);
+    }
+    // Database-specific errors - log for debugging
+    error_log("Database error in get_tenant_applications.php: " . $e->getMessage());
+    send_response(false, 'Unable to retrieve applications due to a database error. Please try again later.', [], [], 500);
 } catch (Exception $e) {
     if ($conn) {
         close_db_connection($conn);
     }
-    // In production, log the error instead of exposing it
-    send_response(false, 'An error occurred while fetching applications', [], ['details' => $e->getMessage()], 500);
+    // General errors - log for debugging
+    error_log("Error in get_tenant_applications.php: " . $e->getMessage());
+    send_response(false, 'An unexpected error occurred while fetching your applications. Please try again later.', [], [], 500);
 }
 ?>
