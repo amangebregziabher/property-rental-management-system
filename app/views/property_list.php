@@ -94,6 +94,9 @@ unset($_SESSION['error_message']);
                     <li class="nav-item">
                         <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tenant_applications_list.php">Applications</a>
+                    </li>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#"
                             id="ownerDropdown" role="button" data-bs-toggle="dropdown">

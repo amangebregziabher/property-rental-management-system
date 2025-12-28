@@ -1,11 +1,13 @@
 <?php
 session_start();
 
-// Check if user is logged in and is an owner or admin
-if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] !== 'owner' && $_SESSION['user_role'] !== 'admin')) {
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
+
+$user_role = strtolower($_SESSION['user_role'] ?? 'tenant');
 
 // Include database connection
 require_once __DIR__ . '/../../config/db_connect.php';
@@ -18,25 +20,40 @@ $search = trim($_GET['search'] ?? '');
 // Fetch applications from database with filters
 $conn = get_db_connection();
 
-// First, get all properties owned by this user (for filter dropdown)
-$properties_sql = "SELECT id, title FROM properties WHERE owner_id = ? ORDER BY title ASC";
-$properties_stmt = mysqli_prepare($conn, $properties_sql);
-mysqli_stmt_bind_param($properties_stmt, "i", $_SESSION['user_id']);
-mysqli_stmt_execute($properties_stmt);
-$properties_result = mysqli_stmt_get_result($properties_stmt);
+// First, get all properties owned by this user (for filter dropdown) - ONLY FOR OWNERS
 $user_properties = [];
-while ($row = mysqli_fetch_assoc($properties_result)) {
-    $user_properties[] = $row;
+if ($user_role === 'owner') {
+    $properties_sql = "SELECT id, title FROM properties WHERE owner_id = ? ORDER BY title ASC";
+    $properties_stmt = mysqli_prepare($conn, $properties_sql);
+    mysqli_stmt_bind_param($properties_stmt, "i", $_SESSION['user_id']);
+    mysqli_stmt_execute($properties_stmt);
+    $properties_result = mysqli_stmt_get_result($properties_stmt);
+    while ($row = mysqli_fetch_assoc($properties_result)) {
+        $user_properties[] = $row;
+    }
 }
 
 // Build applications query
-$sql = "SELECT ra.*, p.title as property_title, p.location as property_location, p.price as property_price
+$sql = "SELECT ra.*, p.title as property_title, p.location as property_location, p.price as property_price, pi.image_path
         FROM rental_applications ra
-        INNER JOIN properties p ON ra.property_id = p.id
-        WHERE p.owner_id = ?";
+        INNER JOIN properties p ON ra.property_id = p.id 
+        LEFT JOIN property_images pi ON p.id = pi.property_id AND pi.is_main = 1";
 
-$params = [$_SESSION['user_id']];
-$types = "i";
+$params = [];
+$types = "";
+
+if ($user_role === 'tenant') {
+    $sql .= " WHERE ra.user_id = ? ";
+    $params[] = $_SESSION['user_id'];
+    $types .= "i";
+} elseif ($user_role === 'owner') {
+    $sql .= " WHERE p.owner_id = ? ";
+    $params[] = $_SESSION['user_id'];
+    $types .= "i";
+} else {
+    // Admin sees all, start with 1=1 for appending ANDs
+    $sql .= " WHERE 1=1 ";
+}
 
 if (!empty($status_filter)) {
     $sql .= " AND ra.status = ?";
@@ -62,7 +79,9 @@ if (!empty($search)) {
 $sql .= " ORDER BY ra.created_at DESC";
 
 $stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, $types, ...$params);
+if (!empty($params)) {
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
+}
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
@@ -74,14 +93,22 @@ while ($row = mysqli_fetch_assoc($result)) {
 // Get statistics
 $stats_sql = "SELECT 
     COUNT(*) as total,
-    SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending,
-    SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as approved,
-    SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejected
+    SUM(CASE WHEN ra.status = 'Pending' THEN 1 ELSE 0 END) as pending,
+    SUM(CASE WHEN ra.status = 'Approved' THEN 1 ELSE 0 END) as approved,
+    SUM(CASE WHEN ra.status = 'Rejected' THEN 1 ELSE 0 END) as rejected
     FROM rental_applications ra
-    INNER JOIN properties p ON ra.property_id = p.id
-    WHERE p.owner_id = ?";
+    INNER JOIN properties p ON ra.property_id = p.id ";
+
+if ($user_role === 'tenant') {
+    $stats_sql .= " WHERE ra.user_id = ? ";
+} elseif ($user_role === 'owner') {
+    $stats_sql .= " WHERE p.owner_id = ? ";
+}
+
 $stats_stmt = mysqli_prepare($conn, $stats_sql);
-mysqli_stmt_bind_param($stats_stmt, "i", $_SESSION['user_id']);
+if ($user_role === 'tenant' || $user_role === 'owner') {
+    mysqli_stmt_bind_param($stats_stmt, "i", $_SESSION['user_id']);
+}
 mysqli_stmt_execute($stats_stmt);
 $stats_result = mysqli_stmt_get_result($stats_stmt);
 $stats = mysqli_fetch_assoc($stats_result);
@@ -448,9 +475,15 @@ close_db_connection($conn);
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="property_list.php">My Properties</a>
-                    </li>
+                    <?php if ($user_role === 'owner' || $user_role === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="property_list.php">My Properties</a>
+                        </li>
+                    <?php else: ?>
+                         <li class="nav-item">
+                            <a class="nav-link" href="tenant_view.php">Find Home</a>
+                        </li>
+                    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link active" href="tenant_applications_list.php">Applications</a>
                     </li>
@@ -474,8 +507,13 @@ close_db_connection($conn);
         <div class="container">
             <!-- Page Header -->
             <div class="page-header">
-                <h1 class="page-title">Tenant Applications</h1>
-                <p class="page-subtitle">Review and manage rental applications for your properties</p>
+                <?php if ($user_role === 'tenant'): ?>
+                    <h1 class="page-title">My Applications</h1>
+                    <p class="page-subtitle">Track the status of your rental applications</p>
+                <?php else: ?>
+                    <h1 class="page-title">Tenant Applications</h1>
+                    <p class="page-subtitle">Review and manage rental applications for your properties</p>
+                <?php endif; ?>
             </div>
 
             <!-- Statistics Cards -->
@@ -541,6 +579,7 @@ close_db_connection($conn);
                             <option value="Rejected" <?php echo $status_filter === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
                         </select>
                     </div>
+                    <?php if ($user_role !== 'tenant'): ?>
                     <div class="col-md-3">
                         <label class="form-label text-white">Property</label>
                         <select name="property" class="form-select">
@@ -553,6 +592,7 @@ close_db_connection($conn);
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <?php endif; ?>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-gradient w-100">
                             <i class="bi bi-funnel me-2"></i>Apply Filters
@@ -572,77 +612,109 @@ close_db_connection($conn);
             <?php else: ?>
                 <?php foreach ($applications as $app): ?>
                     <div class="application-card">
-                        <div class="row">
-                            <div class="col-lg-8">
-                                <div class="applicant-info">
-                                    <div class="applicant-avatar">
-                                        <?php echo strtoupper(substr($app['applicant_name'], 0, 1)); ?>
-                                    </div>
-                                    <div>
-                                        <h5 class="text-white mb-1"><?php echo htmlspecialchars($app['applicant_name']); ?></h5>
-                                        <span class="status-badge status-<?php echo strtolower($app['status']); ?>">
-                                            <?php echo $app['status']; ?>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="info-row">
-                                    <i class="bi bi-house-door"></i>
-                                    <strong class="text-white"><?php echo htmlspecialchars($app['property_title']); ?></strong>
-                                    <span class="text-white-50">- <?php echo htmlspecialchars($app['property_location']); ?></span>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="info-row">
-                                            <i class="bi bi-envelope"></i>
-                                            <span><?php echo htmlspecialchars($app['applicant_email']); ?></span>
+                        <div class="row g-0 align-items-center">
+                            <!-- Image Section -->
+                            <div class="col-md-3 col-lg-2">
+                                <div class="position-relative h-100" style="min-height: 160px;">
+                                    <?php if (!empty($app['image_path'])): ?>
+                                        <img src="../../storage/<?php echo htmlspecialchars($app['image_path']); ?>" 
+                                             class="img-fluid rounded-start h-100 w-100 object-fit-cover position-absolute top-0 start-0" 
+                                             alt="<?php echo htmlspecialchars($app['property_title']); ?>"
+                                             style="border-radius: 20px;">
+                                    <?php else: ?>
+                                        <div class="h-100 w-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50 rounded-4" style="border-radius: 20px;">
+                                            <i class="bi bi-house-door fs-1 text-white opacity-50"></i>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="info-row">
-                                            <i class="bi bi-telephone"></i>
-                                            <span><?php echo htmlspecialchars($app['applicant_phone'] ?? 'N/A'); ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <?php if ($app['move_in_date']): ?>
-                                    <div class="info-row">
-                                        <i class="bi bi-calendar-event"></i>
-                                        <span>Move-in Date: <?php echo date('M d, Y', strtotime($app['move_in_date'])); ?></span>
-                                    </div>
-                                <?php endif; ?>
-
-                                <?php if ($app['monthly_income']): ?>
-                                    <div class="info-row">
-                                        <i class="bi bi-cash-stack"></i>
-                                        <span>Monthly Income: $<?php echo number_format($app['monthly_income'], 2); ?></span>
-                                    </div>
-                                <?php endif; ?>
-
-                                <div class="info-row">
-                                    <i class="bi bi-clock"></i>
-                                    <span>Applied: <?php echo date('M d, Y \a\t g:i A', strtotime($app['created_at'])); ?></span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
+                            
+                            <!-- Content Section -->
+                            <div class="col-md-9 col-lg-10 ps-md-4 py-3 py-md-0">
+                                <div class="row">
+                                    <div class="col-lg-8">
+                                        <div class="d-flex align-items-center gap-3 mb-2">
+                                            <h4 class="text-white fw-bold mb-0">
+                                                <?php echo htmlspecialchars($app['property_title']); ?>
+                                            </h4>
+                                            <span class="status-badge status-<?php echo strtolower($app['status']); ?>">
+                                                <?php echo $app['status']; ?>
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="d-flex flex-wrap gap-3 text-white-50 mb-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-geo-alt-fill text-primary"></i>
+                                                <?php echo htmlspecialchars($app['property_location']); ?>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-cash-stack text-success"></i>
+                                                $<?php echo number_format($app['property_price'], 2); ?>/mo
+                                            </div>
+                                        </div>
 
-                            <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
-                                <div class="action-buttons">
-                                    <button class="btn btn-action btn-view" 
-                                        onclick="viewApplication(<?php echo $app['id']; ?>)">
-                                        <i class="bi bi-eye me-1"></i> View Details
-                                    </button>
-                                    <?php if ($app['status'] === 'Pending'): ?>
-                                        <button class="btn btn-action btn-approve" 
-                                            onclick="updateStatus(<?php echo $app['id']; ?>, 'Approved')">
-                                            <i class="bi bi-check-lg me-1"></i> Approve
-                                        </button>
-                                        <button class="btn btn-action btn-reject" 
-                                            onclick="updateStatus(<?php echo $app['id']; ?>, 'Rejected')">
-                                            <i class="bi bi-x-lg me-1"></i> Reject
-                                        </button>
-                                    <?php endif; ?>
+                                        <!-- Tenant vs Owner Specific Info -->
+                                        <?php if ($user_role !== 'tenant'): ?>
+                                            <div class="p-3 rounded-3 bg-white bg-opacity-10 mb-2">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="applicant-avatar-small rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;">
+                                                        <?php echo strtoupper(substr($app['applicant_name'], 0, 1)); ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-white fw-bold"><?php echo htmlspecialchars($app['applicant_name']); ?></div>
+                                                        <div class="small text-white-50">
+                                                            <i class="bi bi-envelope me-1"></i> <?php echo htmlspecialchars($app['applicant_email']); ?>
+                                                            <span class="mx-2">•</span>
+                                                            <i class="bi bi-telephone me-1"></i> <?php echo htmlspecialchars($app['applicant_phone'] ?? 'N/A'); ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="d-flex align-items-center gap-2 text-white-50 small">
+                                                <i class="bi bi-clock"></i>
+                                                Applied on <?php echo date('M d, Y \a\t g:i A', strtotime($app['created_at'])); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Actions Section -->
+                                    <div class="col-lg-4 d-flex flex-column justify-content-center align-items-lg-end mt-3 mt-lg-0 gap-2">
+                                        <?php if ($user_role !== 'tenant'): ?>
+                                            <button class="btn btn-view w-100 mb-2" onclick="viewApplication(<?php echo $app['id']; ?>)">
+                                                <i class="bi bi-eye me-2"></i>View Full Details
+                                            </button>
+                                            
+                                            <?php if ($app['status'] === 'Pending'): ?>
+                                                <div class="d-flex gap-2 w-100">
+                                                    <button class="btn btn-approve flex-grow-1" onclick="updateStatus(<?php echo $app['id']; ?>, 'Approved')">
+                                                        <i class="bi bi-check-lg"></i> Approve
+                                                    </button>
+                                                    <button class="btn btn-reject flex-grow-1" onclick="updateStatus(<?php echo $app['id']; ?>, 'Rejected')">
+                                                        <i class="bi bi-x-lg"></i> Reject
+                                                    </button>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <!-- Tenant View Status Only -->
+                                            <?php if ($app['status'] === 'Approved'): ?>
+                                                <div class="text-end">
+                                                    <div class="text-success fw-bold mb-1"><i class="bi bi-check-circle-fill me-2"></i>Congratulations!</div>
+                                                    <div class="small text-white-50">Owner will contact you shortly.</div>
+                                                </div>
+                                            <?php elseif ($app['status'] === 'Rejected'): ?>
+                                                <div class="text-end">
+                                                    <div class="text-danger fw-bold mb-1"><i class="bi bi-x-circle-fill me-2"></i>Application Declined</div>
+                                                    <div class="small text-white-50">Best of luck with your search.</div>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="text-end">
+                                                    <div class="text-warning fw-bold mb-1"><i class="bi bi-hourglass-split me-2"></i>Under Review</div>
+                                                    <div class="small text-white-50">We'll notify you of updates.</div>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>

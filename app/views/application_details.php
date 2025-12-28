@@ -1,11 +1,13 @@
 <?php
 session_start();
 
-// Check if user is logged in and is an owner or admin
-if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] !== 'owner' && $_SESSION['user_role'] !== 'admin')) {
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
+
+$user_role = $_SESSION['user_role'] ?? 'tenant';
 
 // Get application ID
 $application_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -20,15 +22,29 @@ require_once __DIR__ . '/../../config/db_connect.php';
 
 $conn = get_db_connection();
 
-// Fetch application details
-$sql = "SELECT ra.*, p.title as property_title, p.location as property_location, 
-        p.price as property_price, p.type as property_type, p.bedrooms, p.bathrooms
-        FROM rental_applications ra
-        INNER JOIN properties p ON ra.property_id = p.id
-        WHERE ra.id = ? AND p.owner_id = ?";
+
+if ($user_role === 'tenant') {
+     $sql = "SELECT ra.*, p.title as property_title, p.location as property_location, 
+            p.price as property_price, p.type as property_type, p.bedrooms, p.bathrooms
+            FROM rental_applications ra
+            INNER JOIN properties p ON ra.property_id = p.id
+            WHERE ra.id = ? AND ra.user_id = ?";
+} else {
+    // Owner/Admin query
+    $sql = "SELECT ra.*, p.title as property_title, p.location as property_location, 
+            p.price as property_price, p.type as property_type, p.bedrooms, p.bathrooms
+            FROM rental_applications ra
+            INNER JOIN properties p ON ra.property_id = p.id
+            WHERE ra.id = ? " . ($user_role !== 'admin' ? "AND p.owner_id = ?" : "");
+}
 
 $stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "ii", $application_id, $_SESSION['user_id']);
+
+if ($user_role === 'admin') {
+     mysqli_stmt_bind_param($stmt, "i", $application_id);
+} else {
+    mysqli_stmt_bind_param($stmt, "ii", $application_id, $_SESSION['user_id']);
+}
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
@@ -358,7 +374,11 @@ close_db_connection($conn);
                         <?php echo strtoupper(substr($application['applicant_name'], 0, 1)); ?>
                     </div>
                     <div class="flex-grow-1">
-                        <h1 class="text-white mb-2"><?php echo htmlspecialchars($application['applicant_name']); ?></h1>
+                        <?php if ($user_role === 'tenant'): ?>
+                            <h1 class="text-white mb-2">My Application for <?php echo htmlspecialchars($application['property_title']); ?></h1>
+                        <?php else: ?>
+                            <h1 class="text-white mb-2"><?php echo htmlspecialchars($application['applicant_name']); ?></h1>
+                        <?php endif; ?>
                         <span class="status-badge status-<?php echo strtolower($application['status']); ?>">
                             <?php echo $application['status']; ?>
                         </span>
@@ -367,7 +387,7 @@ close_db_connection($conn);
                             Applied on <?php echo date('F d, Y \a\t g:i A', strtotime($application['created_at'])); ?>
                         </p>
                     </div>
-                    <?php if ($application['status'] === 'Pending'): ?>
+                    <?php if ($user_role !== 'tenant' && $application['status'] === 'Pending'): ?>
                         <div class="d-flex gap-2">
                             <button class="btn btn-success-gradient" onclick="updateStatus('Approved')">
                                 <i class="bi bi-check-lg me-2"></i>Approve

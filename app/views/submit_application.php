@@ -138,8 +138,23 @@ close_db_connection($conn);
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="tenant_view.php">Properties</a>
+                        <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
+                    <?php if ($is_logged_in): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tenant_applications_list.php">My Applications</a>
+                    </li>
+                     <li class="nav-item ms-lg-3">
+                        <span class="nav-link text-white fw-bold">Welcome, <?php echo htmlspecialchars($user_name); ?></span>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                         <a class="nav-link text-danger" href="../controllers/auth_controller.php?action=logout">Logout</a>
+                    </li>
+                    <?php else: ?>
+                    <li class="nav-item ms-lg-3">
+                         <a href="login.php" class="btn btn-outline-light btn-sm px-4">Login</a>
+                    </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -177,6 +192,24 @@ close_db_connection($conn);
                             <p class="text-secondary">Please provide accurate information for your application. This
                                 information will be reviewed by the property owner.</p>
                         </div>
+
+                        <?php if (isset($_SESSION['form_errors'])): ?>
+                            <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger mb-4">
+                                <ul class="mb-0 ps-3">
+                                    <?php foreach ($_SESSION['form_errors'] as $error): ?>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            <?php unset($_SESSION['form_errors']); ?>
+                        <?php endif; ?>
+
+                        <?php if (isset($_SESSION['error_message'])): ?>
+                            <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger mb-4">
+                                <?php echo htmlspecialchars($_SESSION['error_message']); ?>
+                            </div>
+                            <?php unset($_SESSION['error_message']); ?>
+                        <?php endif; ?>
 
                         <form action="../controllers/submit_application.php" method="POST"
                             enctype="multipart/form-data">
