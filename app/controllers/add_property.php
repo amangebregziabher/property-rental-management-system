@@ -181,12 +181,16 @@ foreach ($uploaded_images as $index => $image) {
 
     if (move_uploaded_file($image['tmp_name'], $destination)) {
         // Insert image record into database
+<<<<<<< Updated upstream
         $is_primary = ($index === 0) ? 1 : 0;
+=======
+        $is_main = ($index === 0) ? 1 : 0;
+>>>>>>> Stashed changes
         $img_sql = "INSERT INTO property_images (property_id, image_path, is_main) VALUES (?, ?, ?)";
         $img_stmt = mysqli_prepare($conn, $img_sql);
 
         if ($img_stmt) {
-            mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_filename, $is_primary);
+            mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_filename, $is_main);
             mysqli_stmt_execute($img_stmt);
             mysqli_stmt_close($img_stmt);
         }
