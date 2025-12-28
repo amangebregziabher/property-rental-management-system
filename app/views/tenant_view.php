@@ -14,7 +14,7 @@ $max_price = $_GET['max_price'] ?? '';
 $conn = get_db_connection();
 
 $sql = "SELECT p.*, 
-        (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_primary DESC, id ASC LIMIT 1) as main_image
+        (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_main DESC, id ASC LIMIT 1) as main_image
         FROM properties p 
         WHERE p.status = 'Available'";
 
@@ -65,6 +65,7 @@ close_db_connection($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,6 +77,7 @@ close_db_connection($conn);
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
+
 <body class="tenant-portal">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark glass-nav sticky-top">
@@ -91,16 +93,21 @@ close_db_connection($conn);
                     </li>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item dropdown ms-lg-3">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle fs-5"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown"
+                                role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle fs-5"></i>
+                                <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">My Profile</a></li>
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
                                     <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
                                 <?php endif; ?>
-                                <li><a class="dropdown-item text-danger" href="../controllers/auth_controller.php?action=logout">Logout</a></li>
+                                <li><a class="dropdown-item text-danger"
+                                        href="../controllers/auth_controller.php?action=logout">Logout</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
@@ -127,7 +134,9 @@ close_db_connection($conn);
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-                                    <input type="text" name="search" class="form-control border-0 py-3" placeholder="Search by location or property title..." value="<?php echo htmlspecialchars($search); ?>">
+                                    <input type="text" name="search" class="form-control border-0 py-3"
+                                        placeholder="Search by location or property title..."
+                                        value="<?php echo htmlspecialchars($search); ?>">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -167,16 +176,21 @@ close_db_connection($conn);
                         <div class="card h-100 border-0 glass-panel property-card hover-up overflow-hidden shadow-sm">
                             <div class="position-relative">
                                 <?php if ($property['main_image']): ?>
-                                    <img src="../../images/<?php echo htmlspecialchars($property['main_image']); ?>" class="card-img-top property-thumb" alt="<?php echo htmlspecialchars($property['title']); ?>">
+                                    <img src="../../images/<?php echo htmlspecialchars($property['main_image']); ?>"
+                                        class="card-img-top property-thumb"
+                                        alt="<?php echo htmlspecialchars($property['title']); ?>">
                                 <?php else: ?>
-                                    <div class="card-img-top property-thumb bg-light d-flex align-items-center justify-content-center">
+                                    <div
+                                        class="card-img-top property-thumb bg-light d-flex align-items-center justify-content-center">
                                         <i class="bi bi-image text-muted display-4"></i>
                                     </div>
                                 <?php endif; ?>
-                                <div class="property-badge position-absolute top-0 end-0 m-3 px-3 py-1 bg-primary text-white rounded-pill shadow-sm fw-bold">
+                                <div
+                                    class="property-badge position-absolute top-0 end-0 m-3 px-3 py-1 bg-primary text-white rounded-pill shadow-sm fw-bold">
                                     $<?php echo number_format($property['price'], 0); ?>/mo
                                 </div>
-                                <div class="type-badge position-absolute bottom-0 start-0 m-3 px-3 py-1 bg-white bg-opacity-75 text-dark rounded-3 shadow-sm small fw-bold">
+                                <div
+                                    class="type-badge position-absolute bottom-0 start-0 m-3 px-3 py-1 bg-white bg-opacity-75 text-dark rounded-3 shadow-sm small fw-bold">
                                     <?php echo htmlspecialchars($property['type']); ?>
                                 </div>
                             </div>
@@ -188,7 +202,8 @@ close_db_connection($conn);
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                                     <span class="text-secondary small">Available Now</span>
-                                    <a href="property_details.php?id=<?php echo $property['id']; ?>" class="btn btn-outline-primary rounded-pill px-4">View Details</a>
+                                    <a href="property_details.php?id=<?php echo $property['id']; ?>"
+                                        class="btn btn-outline-primary rounded-pill px-4">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -272,4 +287,5 @@ close_db_connection($conn);
         <?php endif; ?>
     </script>
 </body>
+
 </html>

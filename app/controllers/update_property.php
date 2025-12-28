@@ -98,10 +98,10 @@ mysqli_stmt_close($stmt);
 // ============================================
 if (!empty($deleted_images)) {
     $upload_dir = __DIR__ . '/../../images/';
-    
+
     foreach ($deleted_images as $img_id) {
         $img_id = intval($img_id);
-        
+
         // Fetch path before deleting from DB
         $path_sql = "SELECT image_path FROM property_images WHERE id = ? AND property_id = ?";
         $path_stmt = mysqli_prepare($conn, $path_sql);
@@ -110,7 +110,7 @@ if (!empty($deleted_images)) {
         $res = mysqli_stmt_get_result($path_stmt);
         $img_data = mysqli_fetch_assoc($res);
         mysqli_stmt_close($path_stmt);
-        
+
         if ($img_data) {
             // Remove from filesystem
             $full_path = $upload_dir . $img_data['image_path'];
@@ -133,9 +133,9 @@ if (!empty($deleted_images)) {
 if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
     $upload_dir = __DIR__ . '/../../images/';
     $file_count = count($_FILES['images']['name']);
-    
+
     // Check if property currently has a primary image
-    $check_primary_sql = "SELECT COUNT(*) as count FROM property_images WHERE property_id = ? AND is_primary = 1";
+    $check_primary_sql = "SELECT COUNT(*) as count FROM property_images WHERE property_id = ? AND is_main = 1";
     $cp_stmt = mysqli_prepare($conn, $check_primary_sql);
     mysqli_stmt_bind_param($cp_stmt, "i", $property_id);
     mysqli_stmt_execute($cp_stmt);
@@ -147,12 +147,12 @@ if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
         if ($_FILES['images']['error'][$i] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($_FILES['images']['name'][$i], PATHINFO_EXTENSION));
             $new_name = 'property_' . $property_id . '_' . time() . '_' . $i . '.' . $ext;
-            
+
             if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $upload_dir . $new_name)) {
                 // Determine if this should be primary (if none exists)
                 $is_primary = (!$has_primary && $i === 0) ? 1 : 0;
-                
-                $img_sql = "INSERT INTO property_images (property_id, image_path, is_primary) VALUES (?, ?, ?)";
+
+                $img_sql = "INSERT INTO property_images (property_id, image_path, is_main) VALUES (?, ?, ?)";
                 $img_stmt = mysqli_prepare($conn, $img_sql);
                 mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_name, $is_primary);
                 mysqli_stmt_execute($img_stmt);
@@ -163,13 +163,13 @@ if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
 }
 
 // Fallback: If no primary image exists after deletions/additions, set the first available one as primary
-$check_primary_again = "SELECT id FROM property_images WHERE property_id = ? AND is_primary = 1";
+$check_primary_again = "SELECT id FROM property_images WHERE property_id = ? AND is_main = 1";
 $cpa_stmt = mysqli_prepare($conn, $check_primary_again);
 mysqli_stmt_bind_param($cpa_stmt, "i", $property_id);
 mysqli_stmt_execute($cpa_stmt);
 if (!mysqli_fetch_assoc(mysqli_stmt_get_result($cpa_stmt))) {
     // Set first image as primary
-    $set_p_sql = "UPDATE property_images SET is_primary = 1 WHERE property_id = ? LIMIT 1";
+    $set_p_sql = "UPDATE property_images SET is_main = 1 WHERE property_id = ? LIMIT 1";
     $set_p_stmt = mysqli_prepare($conn, $set_p_sql);
     mysqli_stmt_bind_param($set_p_stmt, "i", $property_id);
     mysqli_stmt_execute($set_p_stmt);

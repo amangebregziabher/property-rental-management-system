@@ -80,9 +80,9 @@ if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
     }
 
     $file_count = count($_FILES['images']['name']);
-    
+
     // Check if property currently has a primary image
-    $check_primary_sql = "SELECT COUNT(*) as count FROM property_images WHERE property_id = ? AND is_primary = 1";
+    $check_primary_sql = "SELECT COUNT(*) as count FROM property_images WHERE property_id = ? AND is_main = 1";
     $cp_stmt = mysqli_prepare($conn, $check_primary_sql);
     mysqli_stmt_bind_param($cp_stmt, "i", $property_id);
     mysqli_stmt_execute($cp_stmt);
@@ -102,12 +102,12 @@ if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
             }
 
             $new_name = 'property_' . $property_id . '_' . time() . '_' . $i . '.' . $ext;
-            
+
             if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $upload_dir . $new_name)) {
                 // Determine if this should be primary (if none exists)
                 $is_primary = (!$has_primary && $uploaded_count === 0) ? 1 : 0;
-                
-                $img_sql = "INSERT INTO property_images (property_id, image_path, is_primary) VALUES (?, ?, ?)";
+
+                $img_sql = "INSERT INTO property_images (property_id, image_path, is_main) VALUES (?, ?, ?)";
                 $img_stmt = mysqli_prepare($conn, $img_sql);
                 mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_name, $is_primary);
                 mysqli_stmt_execute($img_stmt);
