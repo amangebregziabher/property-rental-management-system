@@ -55,6 +55,9 @@ try {
                 ra.status AS application_status,
                 ra.created_at AS application_date,
                 ra.message AS application_message,
+                ra.applicant_name,
+                ra.applicant_email,
+                ra.applicant_phone,
                 p.id AS property_id,
                 p.title AS property_title,
                 p.location AS property_location,
@@ -65,14 +68,14 @@ try {
             ORDER BY ra.created_at DESC";
 
     $stmt = mysqli_prepare($conn, $sql);
-    
+
     if (!$stmt) {
         throw new Exception("Database prepare error: " . mysqli_error($conn));
     }
 
     mysqli_stmt_bind_param($stmt, "i", $user_id);
     mysqli_stmt_execute($stmt);
-    
+
     $result = mysqli_stmt_get_result($stmt);
     $applications = [];
 
