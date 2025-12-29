@@ -1,0 +1,24 @@
+# Tenant Application Status View Testing Plan
+
+## Objective
+Verify that the tenant application status view correctly displays the status updates and details of tenant applications.
+
+## Test Cases
+
+1. **Verify Status Display**
+   - Check if the status (Pending, Approved, Rejected) is correctly shown for each application.
+   - Ensure the color coding for statuses matches the design (e.g., Green for Approved, Red for Rejected).
+
+2. **Verify Application Details**
+   - Click on an application to view details.
+   - Confirm that tenant name, property applied for, and submission date are accurate.
+   - Check if uploaded documents are accessible.
+
+3. **Verify Status Update Reflection**
+   - Change the status of an application in the backend/admin panel.
+   - Refresh the view or check if it updates in real-time.
+   - Confirm the new status is reflected immediately.
+
+4. **Edge Cases**
+   - Test with an application having a very long property name.
+   - Test with no applications in the list (empty state).
