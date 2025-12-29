@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
     role ENUM('owner', 'tenant', 'admin') DEFAULT 'tenant',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_email (email),
