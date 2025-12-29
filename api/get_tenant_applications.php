@@ -53,7 +53,7 @@ try {
     $sql = "SELECT 
                 ra.id AS application_id,
                 ra.status AS application_status,
-                ra.applied_at AS application_date,
+                ra.created_at AS application_date,
                 ra.message AS application_message,
                 p.id AS property_id,
                 p.title AS property_title,
@@ -62,7 +62,7 @@ try {
             FROM rental_applications ra
             LEFT JOIN properties p ON ra.property_id = p.id
             WHERE ra.user_id = ?
-            ORDER BY ra.applied_at DESC";
+            ORDER BY ra.created_at DESC";
 
     $stmt = mysqli_prepare($conn, $sql);
     
