@@ -84,9 +84,9 @@ close_db_connection($conn);
                         <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
                     <?php if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'tenant')): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="tenant_applications_list.php">My Applications</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="tenant_applications_list.php">My Applications</a>
+                        </li>
                     <?php endif; ?>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item">
@@ -246,27 +246,10 @@ close_db_connection($conn);
                                         </div>
                                     <?php endif; ?>
                                 <?php else: ?>
-                                    <p class="small opacity-75 mb-4">Please sign in to your account to schedule a tour or
-                                        send an inquiry to the owner.</p>
-                                    <div class="d-grid gap-2">
-                                        <a href="login.php?redirect_to=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>"
-                                            class="btn btn-white fw-bold py-3">
-                                            <i class="bi bi-box-arrow-in-right me-2"></i> Sign in to Rent
-                                    <p class="small opacity-75 mb-4">Apply now to start your leasing process or schedule a
-                                        tour to see the property in person.</p>
-                                    <div class="d-grid gap-2">
-                                        <a href="submit_application.php?property_id=<?php echo $property_id; ?>"
-                                            class="btn btn-white fw-bold py-3">
-                                            <i class="bi bi-file-earmark-text me-2"></i> Apply to Rent
-                                        </a>
-                                        <button class="btn btn-outline-white fw-bold py-3"><i
-                                                class="bi bi-calendar-check me-2"></i> Schedule a Tour</button>
-                                    </div>
-                                <?php else: ?>
                                     <p class="small opacity-75 mb-4">Please sign in to your account to apply for this
                                         property or schedule a tour.</p>
                                     <div class="d-grid gap-2">
-                                        <a href="login.php?redirect_to=<?php echo urlencode('submit_application.php?property_id=' . $property_id); ?>"
+                                        <a href="login.php?redirect_to=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>"
                                             class="btn btn-white fw-bold py-3">
                                             <i class="bi bi-box-arrow-in-right me-2"></i> Sign in to Apply
                                         </a>
