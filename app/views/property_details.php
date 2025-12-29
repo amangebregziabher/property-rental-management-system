@@ -84,6 +84,11 @@ close_db_connection($conn);
                         <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
                     <?php if (isset($_SESSION['user_id'])): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my_applications.php">My Applications</a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item dropdown ms-lg-3">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown"
                                 role="button" data-bs-toggle="dropdown">

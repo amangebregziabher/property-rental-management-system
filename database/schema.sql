@@ -77,3 +77,22 @@ CREATE TABLE IF NOT EXISTS property_documents (
     INDEX (property_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Table: rental_applications
+-- Stores applications submitted by tenants for properties
+CREATE TABLE IF NOT EXISTS rental_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    property_id INT NOT NULL,
+    user_id INT NOT NULL,
+    applicant_name VARCHAR(255) NOT NULL,
+    applicant_email VARCHAR(255) NOT NULL,
+    applicant_phone VARCHAR(50) NOT NULL,
+    message TEXT,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX (property_id),
+    INDEX (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+

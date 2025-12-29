@@ -95,5 +95,25 @@ INSERT INTO property_images (property_id, image_path, is_primary) VALUES
 (6, 'uploads/property_6_main.jpg', TRUE);
 
 -- ============================================
+-- Table: rental_applications
+-- Stores applications submitted by tenants for properties
+-- ============================================
+CREATE TABLE IF NOT EXISTS rental_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    property_id INT NOT NULL,
+    user_id INT NOT NULL,
+    applicant_name VARCHAR(100) NOT NULL,
+    applicant_email VARCHAR(100) NOT NULL,
+    applicant_phone VARCHAR(50) NOT NULL,
+    message TEXT,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_property_app (property_id),
+    INDEX idx_user_app (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- End of Schema
 -- ============================================
