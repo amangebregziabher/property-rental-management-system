@@ -326,6 +326,38 @@ close_db_connection($conn);
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Rejection Modal Styling */
+        .modal-content.glass-modal {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: white;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .rejection-reason-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .rejection-reason-input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ff6b6b;
+            color: white;
+            box-shadow: 0 0 0 0.25rem rgba(255, 107, 107, 0.25);
+        }
     </style>
 </head>
 
@@ -552,32 +584,78 @@ close_db_connection($conn);
         </div>
     </div>
 
+    <!-- Rejection Confirmation Modal -->
+    <div class="modal fade" id="rejectionModal" tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectionModalLabel">Confirm Rejection</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to reject this application? This action cannot be undone.</p>
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label">Reason for Rejection (Optional)</label>
+                        <textarea class="form-control rejection-reason-input" id="rejectionReason" rows="3" placeholder="Explain why the application is being rejected..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger-gradient" onclick="confirmRejection()">
+                        Confirm Rejection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function updateStatus(status) {
-            if (confirm(`Are you sure you want to ${status.toLowerCase()} this application?`)) {
-                const formData = new FormData();
-                formData.append('application_id', <?php echo $application_id; ?>);
-                formData.append('status', status);
+        let rejectionModal = null;
 
-                fetch('../controllers/update_application_status.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    alert('An error occurred. Please try again.');
-                    console.error('Error:', error);
-                });
+        document.addEventListener('DOMContentLoaded', function() {
+            rejectionModal = new bootstrap.Modal(document.getElementById('rejectionModal'));
+        });
+
+        function updateStatus(status) {
+            if (status === 'Rejected') {
+                rejectionModal.show();
+                return;
             }
+
+            if (confirm(`Are you sure you want to ${status.toLowerCase()} this application?`)) {
+                submitStatusChange(status);
+            }
+        }
+
+        function confirmRejection() {
+            const reason = document.getElementById('rejectionReason').value;
+            submitStatusChange('Rejected', reason);
+        }
+
+        function submitStatusChange(status, reason = '') {
+            const formData = new FormData();
+            formData.append('application_id', <?php echo $application_id; ?>);
+            formData.append('status', status);
+            formData.append('reason', reason);
+
+            fetch('../controllers/update_application_status.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('An error occurred. Please try again.');
+                console.error('Error:', error);
+            });
         }
     </script>
 </body>
