@@ -53,6 +53,8 @@ define('APP_PATH', BASE_PATH . '/app');
                             <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
                                     <li><a class="dropdown-item" href="../app/views/property_list.php">Owner Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="../app/views/manage_applications.php">Manage
+                                            Applications</a></li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>

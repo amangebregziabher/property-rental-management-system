@@ -78,6 +78,7 @@ close_db_connection($conn);
             <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
               <?php if ($user_role === 'owner' || $user_role === 'admin'): ?>
                 <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
+                <li><a class="dropdown-item" href="manage_applications.php">Manage Applications</a></li>
                 <li>
                   <hr class="dropdown-divider">
                 </li>
