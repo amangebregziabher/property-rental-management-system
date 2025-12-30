@@ -22,3 +22,19 @@ Verify that the tenant application status view correctly displays the status upd
 4. **Edge Cases**
    - Test with an application having a very long property name.
    - Test with no applications in the list (empty state).
+
+## Approval and Rejection Workflow
+
+1. **Approve Application**
+   - Use the `update_application_status.php` endpoint (or UI button) to set status to 'Approved'.
+   - Verify database is updated.
+   - Verify UI reflects 'Approved'.
+
+2. **Reject Application**
+   - Use the `update_application_status.php` endpoint (or UI button) to set status to 'Rejected'.
+   - Verify database is updated.
+   - Verify UI reflects 'Rejected'.
+
+3. **Permission Check**
+   - Attempt to update status as a non-owner/non-admin.
+   - Verify access is denied (403 Forbidden).
