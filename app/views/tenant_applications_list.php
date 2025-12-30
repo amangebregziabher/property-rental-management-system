@@ -128,7 +128,8 @@ close_db_connection($conn);
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../public/assets/css/style.css?v=<?php echo time(); ?>">
     <style>
@@ -160,7 +161,7 @@ close_db_connection($conn);
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
             pointer-events: none;
@@ -299,7 +300,8 @@ close_db_connection($conn);
             color: white;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--border-color);
             color: white;
@@ -308,7 +310,8 @@ close_db_connection($conn);
             transition: all 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.3);
             color: white;
@@ -512,7 +515,7 @@ close_db_connection($conn);
                             <a class="nav-link" href="property_list.php">My Properties</a>
                         </li>
                     <?php else: ?>
-                         <li class="nav-item">
+                        <li class="nav-item">
                             <a class="nav-link" href="tenant_view.php">Find Home</a>
                         </li>
                     <?php endif; ?>
@@ -555,7 +558,7 @@ close_db_connection($conn);
                         <div class="stats-icon">
                             <i class="bi bi-file-earmark-text text-white"></i>
                         </div>
-                        <h3 class="text-white mb-0"><?php echo $stats['total']; ?></h3>
+                        <h3 id="stat-total" class="text-white mb-0"><?php echo $stats['total']; ?></h3>
                         <p class="text-white-50 mb-0">Total Applications</p>
                     </div>
                 </div>
@@ -564,7 +567,7 @@ close_db_connection($conn);
                         <div class="stats-icon">
                             <i class="bi bi-clock-history text-white"></i>
                         </div>
-                        <h3 class="text-white mb-0"><?php echo $stats['pending']; ?></h3>
+                        <h3 id="stat-pending" class="text-white mb-0"><?php echo $stats['pending']; ?></h3>
                         <p class="text-white-50 mb-0">Pending Review</p>
                     </div>
                 </div>
@@ -573,7 +576,7 @@ close_db_connection($conn);
                         <div class="stats-icon">
                             <i class="bi bi-check-circle text-white"></i>
                         </div>
-                        <h3 class="text-white mb-0"><?php echo $stats['approved']; ?></h3>
+                        <h3 id="stat-approved" class="text-white mb-0"><?php echo $stats['approved']; ?></h3>
                         <p class="text-white-50 mb-0">Approved</p>
                     </div>
                 </div>
@@ -582,7 +585,7 @@ close_db_connection($conn);
                         <div class="stats-icon">
                             <i class="bi bi-x-circle text-white"></i>
                         </div>
-                        <h3 class="text-white mb-0"><?php echo $stats['rejected']; ?></h3>
+                        <h3 id="stat-rejected" class="text-white mb-0"><?php echo $stats['rejected']; ?></h3>
                         <p class="text-white-50 mb-0">Rejected</p>
                     </div>
                 </div>
@@ -598,32 +601,33 @@ close_db_connection($conn);
                                 <i class="bi bi-search"></i>
                             </span>
                             <input type="text" name="search" class="form-control border-start-0"
-                                placeholder="Name, email, or phone..."
-                                value="<?php echo htmlspecialchars($search); ?>">
+                                placeholder="Name, email, or phone..." value="<?php echo htmlspecialchars($search); ?>">
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label text-white">Status</label>
                         <select name="status" class="form-select">
                             <option value="">All Statuses</option>
-                            <option value="Pending" <?php echo $status_filter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
-                            <option value="Approved" <?php echo $status_filter === 'Approved' ? 'selected' : ''; ?>>Approved</option>
-                            <option value="Rejected" <?php echo $status_filter === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
+                            <option value="Pending" <?php echo $status_filter === 'Pending' ? 'selected' : ''; ?>>Pending
+                            </option>
+                            <option value="Approved" <?php echo $status_filter === 'Approved' ? 'selected' : ''; ?>>
+                                Approved</option>
+                            <option value="Rejected" <?php echo $status_filter === 'Rejected' ? 'selected' : ''; ?>>
+                                Rejected</option>
                         </select>
                     </div>
                     <?php if ($user_role !== 'tenant'): ?>
-                    <div class="col-md-3">
-                        <label class="form-label text-white">Property</label>
-                        <select name="property" class="form-select">
-                            <option value="">All Properties</option>
-                            <?php foreach ($user_properties as $prop): ?>
-                                <option value="<?php echo $prop['id']; ?>" 
-                                    <?php echo $property_filter == $prop['id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($prop['title']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-white">Property</label>
+                            <select name="property" class="form-select">
+                                <option value="">All Properties</option>
+                                <?php foreach ($user_properties as $prop): ?>
+                                    <option value="<?php echo $prop['id']; ?>" <?php echo $property_filter == $prop['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($prop['title']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     <?php endif; ?>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-gradient w-100">
@@ -649,18 +653,19 @@ close_db_connection($conn);
                             <div class="col-md-3 col-lg-2">
                                 <div class="position-relative h-100" style="min-height: 160px;">
                                     <?php if (!empty($app['image_path'])): ?>
-                                        <img src="../../storage/<?php echo htmlspecialchars($app['image_path']); ?>" 
-                                             class="img-fluid rounded-start h-100 w-100 object-fit-cover position-absolute top-0 start-0" 
-                                             alt="<?php echo htmlspecialchars($app['property_title']); ?>"
-                                             style="border-radius: 20px;">
+                                        <img src="../../storage/<?php echo htmlspecialchars($app['image_path']); ?>"
+                                            class="img-fluid rounded-start h-100 w-100 object-fit-cover position-absolute top-0 start-0"
+                                            alt="<?php echo htmlspecialchars($app['property_title']); ?>"
+                                            style="border-radius: 20px;">
                                     <?php else: ?>
-                                        <div class="h-100 w-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50 rounded-4" style="border-radius: 20px;">
+                                        <div class="h-100 w-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50 rounded-4"
+                                            style="border-radius: 20px;">
                                             <i class="bi bi-house-door fs-1 text-white opacity-50"></i>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
-                            
+
                             <!-- Content Section -->
                             <div class="col-md-9 col-lg-10 ps-md-4 py-3 py-md-0">
                                 <div class="row">
@@ -669,11 +674,12 @@ close_db_connection($conn);
                                             <h4 class="text-white fw-bold mb-0">
                                                 <?php echo htmlspecialchars($app['property_title']); ?>
                                             </h4>
-                                            <span class="status-badge status-<?php echo strtolower($app['status']); ?>">
+                                            <span id="status-badge-<?php echo $app['id']; ?>"
+                                                class="status-badge status-<?php echo strtolower($app['status']); ?>">
                                                 <?php echo $app['status']; ?>
                                             </span>
                                         </div>
-                                        
+
                                         <div class="d-flex flex-wrap gap-3 text-white-50 mb-3">
                                             <div class="d-flex align-items-center gap-2">
                                                 <i class="bi bi-geo-alt-fill text-primary"></i>
@@ -689,15 +695,19 @@ close_db_connection($conn);
                                         <?php if ($user_role !== 'tenant'): ?>
                                             <div class="p-3 rounded-3 bg-white bg-opacity-10 mb-2">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <div class="applicant-avatar-small rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;">
+                                                    <div class="applicant-avatar-small rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                                                        style="width: 40px; height: 40px;">
                                                         <?php echo strtoupper(substr($app['applicant_name'], 0, 1)); ?>
                                                     </div>
                                                     <div>
-                                                        <div class="text-white fw-bold"><?php echo htmlspecialchars($app['applicant_name']); ?></div>
+                                                        <div class="text-white fw-bold">
+                                                            <?php echo htmlspecialchars($app['applicant_name']); ?></div>
                                                         <div class="small text-white-50">
-                                                            <i class="bi bi-envelope me-1"></i> <?php echo htmlspecialchars($app['applicant_email']); ?>
+                                                            <i class="bi bi-envelope me-1"></i>
+                                                            <?php echo htmlspecialchars($app['applicant_email']); ?>
                                                             <span class="mx-2">•</span>
-                                                            <i class="bi bi-telephone me-1"></i> <?php echo htmlspecialchars($app['applicant_phone'] ?? 'N/A'); ?>
+                                                            <i class="bi bi-telephone me-1"></i>
+                                                            <?php echo htmlspecialchars($app['applicant_phone'] ?? 'N/A'); ?>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -711,37 +721,46 @@ close_db_connection($conn);
                                     </div>
 
                                     <!-- Actions Section -->
-                                    <div class="col-lg-4 d-flex flex-column justify-content-center align-items-lg-end mt-3 mt-lg-0 gap-2">
+                                    <div
+                                        class="col-lg-4 d-flex flex-column justify-content-center align-items-lg-end mt-3 mt-lg-0 gap-2">
                                         <?php if ($user_role !== 'tenant'): ?>
-                                            <button class="btn btn-view w-100 mb-2" onclick="viewApplication(<?php echo $app['id']; ?>)">
+                                            <button class="btn btn-view w-100 mb-2"
+                                                onclick="viewApplication(<?php echo $app['id']; ?>)">
                                                 <i class="bi bi-eye me-2"></i>View Full Details
                                             </button>
-                                            
-                                            <?php if ($app['status'] === 'Pending'): ?>
-                                                <div class="d-flex gap-2 w-100">
-                                                    <button class="btn btn-approve flex-grow-1" onclick="updateStatus(<?php echo $app['id']; ?>, 'Approved')">
-                                                        <i class="bi bi-check-lg"></i> Approve
-                                                    </button>
-                                                    <button class="btn btn-reject flex-grow-1" onclick="updateStatus(<?php echo $app['id']; ?>, 'Rejected')">
-                                                        <i class="bi bi-x-lg"></i> Reject
-                                                    </button>
-                                                </div>
-                                            <?php endif; ?>
+
+                                            <div id="actions-container-<?php echo $app['id']; ?>" class="w-100">
+                                                <?php if ($app['status'] === 'Pending'): ?>
+                                                    <div class="d-flex gap-2 w-100">
+                                                        <button class="btn btn-approve flex-grow-1"
+                                                            onclick="updateStatus(<?php echo $app['id']; ?>, 'Approved')">
+                                                            <i class="bi bi-check-lg"></i> Approve
+                                                        </button>
+                                                        <button class="btn btn-reject flex-grow-1"
+                                                            onclick="updateStatus(<?php echo $app['id']; ?>, 'Rejected')">
+                                                            <i class="bi bi-x-lg"></i> Reject
+                                                        </button>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
                                         <?php else: ?>
                                             <!-- Tenant View Status Only -->
                                             <?php if ($app['status'] === 'Approved'): ?>
                                                 <div class="text-end">
-                                                    <div class="text-success fw-bold mb-1"><i class="bi bi-check-circle-fill me-2"></i>Congratulations!</div>
+                                                    <div class="text-success fw-bold mb-1"><i
+                                                            class="bi bi-check-circle-fill me-2"></i>Congratulations!</div>
                                                     <div class="small text-white-50">Owner will contact you shortly.</div>
                                                 </div>
                                             <?php elseif ($app['status'] === 'Rejected'): ?>
                                                 <div class="text-end">
-                                                    <div class="text-danger fw-bold mb-1"><i class="bi bi-x-circle-fill me-2"></i>Application Declined</div>
+                                                    <div class="text-danger fw-bold mb-1"><i
+                                                            class="bi bi-x-circle-fill me-2"></i>Application Declined</div>
                                                     <div class="small text-white-50">Best of luck with your search.</div>
                                                 </div>
                                             <?php else: ?>
                                                 <div class="text-end">
-                                                    <div class="text-warning fw-bold mb-1"><i class="bi bi-hourglass-split me-2"></i>Under Review</div>
+                                                    <div class="text-warning fw-bold mb-1"><i
+                                                            class="bi bi-hourglass-split me-2"></i>Under Review</div>
                                                     <div class="small text-white-50">We'll notify you of updates.</div>
                                                 </div>
                                             <?php endif; ?>
@@ -762,17 +781,20 @@ close_db_connection($conn);
             <div class="modal-content glass-modal">
                 <div class="modal-header">
                     <h5 class="modal-title" id="rejectionModalLabel">Confirm Rejection</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p>Are you sure you want to reject this application? This action cannot be undone.</p>
                     <div class="mb-3">
                         <label for="rejectionReason" class="form-label">Reason for Rejection (Optional)</label>
-                        <textarea class="form-control rejection-reason-input" id="rejectionReason" rows="3" placeholder="Explain why the application is being rejected..."></textarea>
+                        <textarea class="form-control rejection-reason-input" id="rejectionReason" rows="3"
+                            placeholder="Explain why the application is being rejected..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger-gradient" onclick="confirmRejection()">
                         Confirm Rejection
                     </button>
@@ -786,7 +808,7 @@ close_db_connection($conn);
         let rejectionModal = null;
         let currentStatusUpdateId = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             rejectionModal = new bootstrap.Modal(document.getElementById('rejectionModal'));
         });
 
@@ -822,19 +844,58 @@ close_db_connection($conn);
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('An error occurred. Please try again.');
-                console.error('Error:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI in real-time
+                        if (rejectionModal) rejectionModal.hide();
+
+                        // 1. Update Badge
+                        const badge = document.getElementById(`status-badge-${id}`);
+                        if (badge) {
+                            badge.textContent = status;
+                            badge.className = `status-badge status-${status.toLowerCase()}`;
+                        }
+
+                        // 2. Update Actions Container (Remove buttons and maybe show a message)
+                        const actionsContainer = document.getElementById(`actions-container-${id}`);
+                        if (actionsContainer) {
+                            actionsContainer.style.transition = 'all 0.5s ease';
+                            actionsContainer.style.opacity = '0';
+                            setTimeout(() => {
+                                actionsContainer.innerHTML = `
+                                <div class="text-end animate__animated animate__fadeIn">
+                                    <div class="text-${status === 'Approved' ? 'success' : 'danger'} fw-bold mb-1">
+                                        <i class="bi bi-${status === 'Approved' ? 'check-circle' : 'x-circle'}-fill me-2"></i>
+                                        Application ${status}
+                                    </div>
+                                    <div class="small text-white-50">Status updated just now</div>
+                                </div>
+                            `;
+                                actionsContainer.style.opacity = '1';
+                            }, 500);
+                        }
+
+                        // 3. Update Stats Cards
+                        const pendingStat = document.getElementById('stat-pending');
+                        const targetStat = document.getElementById(`stat-${status.toLowerCase()}`);
+
+                        if (pendingStat) {
+                            pendingStat.textContent = Math.max(0, parseInt(pendingStat.textContent) - 1);
+                        }
+                        if (targetStat) {
+                            targetStat.textContent = parseInt(targetStat.textContent) + 1;
+                        }
+
+                        console.log(data.message);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred. Please try again.');
+                    console.error('Error:', error);
+                });
         }
     </script>
 </body>
