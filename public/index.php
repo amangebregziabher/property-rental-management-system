@@ -38,6 +38,11 @@ define('APP_PATH', BASE_PATH . '/app');
                     <li class="nav-item">
                         <a class="nav-link" href="../app/views/tenant_view.php">Find a Home</a>
                     </li>
+                    <?php if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] ?? 'tenant') === 'tenant'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../app/views/tenant_applications_list.php">My Applications</a>
+                    </li>
+                    <?php endif; ?>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="../app/views/my_applications.php">My Applications</a>

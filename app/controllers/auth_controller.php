@@ -137,7 +137,9 @@ function handleLogin()
             header("Location: $redirect");
         } else {
             // Default redirects based on role
-            if ($user['role'] === 'owner' || $user['role'] === 'admin') {
+            if ($user['role'] === 'admin') {
+                header('Location: ../views/admin_dashboard.php');
+            } elseif ($user['role'] === 'owner') {
                 header('Location: ../views/property_list.php');
             } else {
                 header('Location: ../views/tenant_view.php');

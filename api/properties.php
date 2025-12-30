@@ -163,7 +163,7 @@ $conn = get_db_connection();
 
 try {
   // Insert Property
-  // Actual DB uses 'type' and 'property_images' uses 'is_primary'
+  // Actual DB uses 'type' and 'property_images' uses 'is_main'
   $sql = "INSERT INTO properties (owner_id, title, description, price, location, type, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
   $stmt = mysqli_prepare($conn, $sql);
 
@@ -195,11 +195,11 @@ try {
     $destination = $upload_dir . $new_filename;
 
     if (move_uploaded_file($image['tmp_name'], $destination)) {
-      $is_primary = ($index === 0) ? 1 : 0;
-      $img_sql = "INSERT INTO property_images (property_id, image_path, is_primary) VALUES (?, ?, ?)";
+      $is_main = ($index === 0) ? 1 : 0;
+      $img_sql = "INSERT INTO property_images (property_id, image_path, is_main) VALUES (?, ?, ?)";
       $img_stmt = mysqli_prepare($conn, $img_sql);
       if ($img_stmt) {
-        mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_filename, $is_primary);
+        mysqli_stmt_bind_param($img_stmt, "isi", $property_id, $new_filename, $is_main);
         mysqli_stmt_execute($img_stmt);
         mysqli_stmt_close($img_stmt);
         $images_saved++;

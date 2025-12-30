@@ -145,6 +145,10 @@ mysqli_stmt_close($del_stmt);
 // ============================================
 close_db_connection($conn);
 
-header('Location: ../views/property_list.php');
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+    header('Location: ../views/admin_dashboard.php');
+} else {
+    header('Location: ../views/property_list.php');
+}
 exit();
 ?>

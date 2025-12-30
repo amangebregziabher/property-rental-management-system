@@ -7,10 +7,11 @@
  */
 
 return [
-    'host' => 'localhost',
+    'host' => '127.0.0.1',
     'database' => 'prms_db',
     'username' => 'root',
     'password' => '',
+    'port' => 3300,
     'charset' => 'utf8mb4',
     'collation' => 'utf8mb4_unicode_ci',
     'prefix' => '',
