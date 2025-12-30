@@ -58,12 +58,27 @@ try {
         exit();
     }
     
+    // Get old status first
+    $status_sql = "SELECT status FROM rental_applications WHERE id = ?";
+    $status_stmt = mysqli_prepare($conn, $status_sql);
+    mysqli_stmt_bind_param($status_stmt, "i", $application_id);
+    mysqli_stmt_execute($status_stmt);
+    $status_result = mysqli_stmt_get_result($status_stmt);
+    $old_status_row = mysqli_fetch_assoc($status_result);
+    $old_status = $old_status_row['status'];
+
     // Update the application status
     $update_sql = "UPDATE rental_applications SET status = ? WHERE id = ?";
     $update_stmt = mysqli_prepare($conn, $update_sql);
     mysqli_stmt_bind_param($update_stmt, "si", $new_status, $application_id);
     
     if (mysqli_stmt_execute($update_stmt)) {
+        // Log to history
+        $log_sql = "INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, reason) VALUES (?, ?, ?, ?, ?)";
+        $reason = "Status updated by owner via dashboard";
+        $log_stmt = mysqli_prepare($conn, $log_sql);
+        mysqli_stmt_bind_param($log_stmt, "issis", $application_id, $old_status, $new_status, $_SESSION['user_id'], $reason);
+        mysqli_stmt_execute($log_stmt);
         // If approved, you might want to update the property status or create a booking
         // This is a placeholder for future enhancement
         if ($new_status === 'Approved') {
