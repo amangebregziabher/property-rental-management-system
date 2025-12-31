@@ -33,42 +33,50 @@ if ($user_role === 'owner') {
     }
 }
 
-// Build applications query
+// Pagination Configuration
+$per_page = 6;
+$page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
+if ($page < 1) $page = 1;
+$offset = ($page - 1) * $per_page;
+
+// Build applications query with filters
 $sql = "SELECT ra.*, p.title as property_title, p.location as property_location, p.price as property_price, pi.image_path
         FROM rental_applications ra
         INNER JOIN properties p ON ra.property_id = p.id 
         LEFT JOIN property_images pi ON p.id = pi.property_id AND pi.is_main = 1";
 
+$count_sql = "SELECT COUNT(*) as total_count
+              FROM rental_applications ra
+              INNER JOIN properties p ON ra.property_id = p.id";
+
 $params = [];
 $types = "";
+$where_clauses = [];
 
 if ($user_role === 'tenant') {
-    $sql .= " WHERE ra.user_id = ? ";
+    $where_clauses[] = "ra.user_id = ?";
     $params[] = $_SESSION['user_id'];
     $types .= "i";
 } elseif ($user_role === 'owner') {
-    $sql .= " WHERE p.owner_id = ? ";
+    $where_clauses[] = "p.owner_id = ?";
     $params[] = $_SESSION['user_id'];
     $types .= "i";
-} else {
-    // Admin sees all, start with 1=1 for appending ANDs
-    $sql .= " WHERE 1=1 ";
 }
 
 if (!empty($status_filter)) {
-    $sql .= " AND ra.status = ?";
+    $where_clauses[] = "ra.status = ?";
     $params[] = $status_filter;
     $types .= "s";
 }
 
 if (!empty($property_filter) && is_numeric($property_filter)) {
-    $sql .= " AND ra.property_id = ?";
+    $where_clauses[] = "ra.property_id = ?";
     $params[] = $property_filter;
     $types .= "i";
 }
 
 if (!empty($search)) {
-    $sql .= " AND (ra.applicant_name LIKE ? OR ra.applicant_email LIKE ? OR ra.applicant_phone LIKE ?)";
+    $where_clauses[] = "(ra.applicant_name LIKE ? OR ra.applicant_email LIKE ? OR ra.applicant_phone LIKE ?)";
     $search_term = "%$search%";
     $params[] = $search_term;
     $params[] = $search_term;
@@ -76,7 +84,25 @@ if (!empty($search)) {
     $types .= "sss";
 }
 
-$sql .= " ORDER BY ra.created_at DESC";
+$where_sql = !empty($where_clauses) ? " WHERE " . implode(" AND ", $where_clauses) : " WHERE 1=1 ";
+$sql .= $where_sql;
+$count_sql .= $where_sql;
+
+// Get total count for pagination
+$count_stmt = mysqli_prepare($conn, $count_sql);
+if (!empty($params)) {
+    mysqli_stmt_bind_param($count_stmt, $types, ...$params);
+}
+mysqli_stmt_execute($count_stmt);
+$count_result = mysqli_stmt_get_result($count_stmt);
+$total_records = mysqli_fetch_assoc($count_result)['total_count'];
+$total_pages = ceil($total_records / $per_page);
+
+// Add sorting and pagination to main query
+$sql .= " ORDER BY ra.created_at DESC LIMIT ? OFFSET ?";
+$params[] = $per_page;
+$params[] = $offset;
+$types .= "ii";
 
 $stmt = mysqli_prepare($conn, $sql);
 if (!empty($params)) {
@@ -752,6 +778,45 @@ close_db_connection($conn);
                         </div>
                     </div>
                 <?php endforeach; ?>
+
+                <!-- Pagination UI -->
+                <?php if ($total_pages > 1): ?>
+                    <nav aria-label="Application pagination" class="mt-5">
+                        <ul class="pagination justify-content-center">
+                            <?php 
+                            $query_params = $_GET;
+                            unset($query_params['page']);
+                            $base_query = http_build_query($query_params);
+                            $base_url = "tenant_applications_list.php?" . ($base_query ? $base_query . "&" : "");
+                            ?>
+
+                            <!-- Previous Page -->
+                            <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                <a class="page-link bg-dark bg-opacity-25 border-secondary text-white rounded-start-pill px-3" 
+                                   href="<?php echo $base_url . 'page=' . ($page - 1); ?>" tabindex="-1">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
+                                    <a class="page-link <?php echo $page == $i ? 'bg-primary border-primary' : 'bg-dark bg-opacity-25 border-secondary text-white'; ?>" 
+                                       href="<?php echo $base_url . 'page=' . $i; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+
+                            <!-- Next Page -->
+                            <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
+                                <a class="page-link bg-dark bg-opacity-25 border-secondary text-white rounded-end-pill px-3" 
+                                   href="<?php echo $base_url . 'page=' . ($page + 1); ?>">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
