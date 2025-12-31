@@ -717,9 +717,15 @@ close_db_connection($conn);
                                             </div>
                                         </div>
 
+                                        <!-- Submission Date (Always visible) -->
+                                        <div class="d-flex align-items-center gap-2 text-white-50 small mb-2">
+                                            <i class="bi bi-clock"></i>
+                                            Applied on <?php echo date('M d, Y \a\t g:i A', strtotime($app['created_at'])); ?>
+                                        </div>
+
                                         <!-- Tenant vs Owner Specific Info -->
                                         <?php if ($user_role !== 'tenant'): ?>
-                                            <div class="p-3 rounded-3 bg-white bg-opacity-10 mb-2">
+                                            <div class="p-3 rounded-3 bg-white bg-opacity-10">
                                                 <div class="d-flex align-items-center gap-3">
                                                     <div class="applicant-avatar-small rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
                                                         style="width: 40px; height: 40px;">
@@ -737,11 +743,6 @@ close_db_connection($conn);
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="d-flex align-items-center gap-2 text-white-50 small">
-                                                <i class="bi bi-clock"></i>
-                                                Applied on <?php echo date('M d, Y \a\t g:i A', strtotime($app['created_at'])); ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
