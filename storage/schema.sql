@@ -116,5 +116,23 @@ CREATE TABLE IF NOT EXISTS rental_applications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- Table: application_status_history
+-- Stores history of status changes for rental applications
+-- ============================================
+CREATE TABLE IF NOT EXISTS application_status_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT NOT NULL,
+    old_status ENUM('Pending', 'Approved', 'Rejected') NOT NULL,
+    new_status ENUM('Pending', 'Approved', 'Rejected') NOT NULL,
+    changed_by INT NOT NULL,
+    reason TEXT,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES rental_applications(id) ON DELETE CASCADE,
+    FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_application (application_id),
+    INDEX idx_changed_by (changed_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- End of Schema
 -- ============================================
