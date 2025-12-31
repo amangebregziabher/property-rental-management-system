@@ -24,7 +24,7 @@ $conn = get_db_connection();
 
 
 if ($user_role === 'tenant') {
-     $sql = "SELECT ra.*, p.title as property_title, p.location as property_location, 
+    $sql = "SELECT ra.*, p.title as property_title, p.location as property_location, 
             p.price as property_price, p.type as property_type, p.bedrooms, p.bathrooms
             FROM rental_applications ra
             INNER JOIN properties p ON ra.property_id = p.id
@@ -41,7 +41,7 @@ if ($user_role === 'tenant') {
 $stmt = mysqli_prepare($conn, $sql);
 
 if ($user_role === 'admin') {
-     mysqli_stmt_bind_param($stmt, "i", $application_id);
+    mysqli_stmt_bind_param($stmt, "i", $application_id);
 } else {
     mysqli_stmt_bind_param($stmt, "ii", $application_id, $_SESSION['user_id']);
 }
@@ -70,7 +70,8 @@ close_db_connection($conn);
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../public/assets/css/style.css?v=<?php echo time(); ?>">
     <style>
@@ -102,7 +103,7 @@ close_db_connection($conn);
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
             pointer-events: none;
@@ -407,11 +408,13 @@ close_db_connection($conn);
                     </div>
                     <div class="flex-grow-1">
                         <?php if ($user_role === 'tenant'): ?>
-                            <h1 class="text-white mb-2">My Application for <?php echo htmlspecialchars($application['property_title']); ?></h1>
+                            <h1 class="text-white mb-2">My Application for
+                                <?php echo htmlspecialchars($application['property_title']); ?></h1>
                         <?php else: ?>
                             <h1 class="text-white mb-2"><?php echo htmlspecialchars($application['applicant_name']); ?></h1>
                         <?php endif; ?>
-                        <span class="status-badge status-<?php echo strtolower($application['status']); ?>">
+                        <span id="application-status-badge"
+                            class="status-badge status-<?php echo strtolower($application['status']); ?>">
                             <?php echo $application['status']; ?>
                         </span>
                         <p class="text-white-50 mt-2 mb-0">
@@ -420,7 +423,7 @@ close_db_connection($conn);
                         </p>
                     </div>
                     <?php if ($user_role !== 'tenant' && $application['status'] === 'Pending'): ?>
-                        <div class="d-flex gap-2">
+                        <div id="status-actions" class="d-flex gap-2">
                             <button class="btn btn-success-gradient" onclick="updateStatus('Approved')">
                                 <i class="bi bi-check-lg me-2"></i>Approve
                             </button>
@@ -444,7 +447,8 @@ close_db_connection($conn);
                     </div>
                     <div class="info-item">
                         <span class="info-label">Location</span>
-                        <span class="info-value"><?php echo htmlspecialchars($application['property_location']); ?></span>
+                        <span
+                            class="info-value"><?php echo htmlspecialchars($application['property_location']); ?></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Property Type</span>
@@ -474,8 +478,8 @@ close_db_connection($conn);
                     <div class="info-item">
                         <span class="info-label">Email Address</span>
                         <span class="info-value">
-                            <a href="mailto:<?php echo htmlspecialchars($application['applicant_email']); ?>" 
-                               class="text-white text-decoration-none">
+                            <a href="mailto:<?php echo htmlspecialchars($application['applicant_email']); ?>"
+                                class="text-white text-decoration-none">
                                 <?php echo htmlspecialchars($application['applicant_email']); ?>
                             </a>
                         </span>
@@ -484,8 +488,8 @@ close_db_connection($conn);
                         <span class="info-label">Phone Number</span>
                         <span class="info-value">
                             <?php if ($application['applicant_phone']): ?>
-                                <a href="tel:<?php echo htmlspecialchars($application['applicant_phone']); ?>" 
-                                   class="text-white text-decoration-none">
+                                <a href="tel:<?php echo htmlspecialchars($application['applicant_phone']); ?>"
+                                    class="text-white text-decoration-none">
                                     <?php echo htmlspecialchars($application['applicant_phone']); ?>
                                 </a>
                             <?php else: ?>
@@ -517,7 +521,8 @@ close_db_connection($conn);
                 <?php if ($application['message']): ?>
                     <div class="info-item mt-4">
                         <span class="info-label">Applicant Message</span>
-                        <div class="info-value" style="white-space: pre-wrap;"><?php echo htmlspecialchars($application['message']); ?></div>
+                        <div class="info-value" style="white-space: pre-wrap;">
+                            <?php echo htmlspecialchars($application['message']); ?></div>
                     </div>
                 <?php endif; ?>
             </div>
@@ -544,7 +549,8 @@ close_db_connection($conn);
                         <?php if ($application['employment_status']): ?>
                             <div class="info-item">
                                 <span class="info-label">Employment Status</span>
-                                <span class="info-value"><?php echo htmlspecialchars($application['employment_status']); ?></span>
+                                <span
+                                    class="info-value"><?php echo htmlspecialchars($application['employment_status']); ?></span>
                             </div>
                         <?php endif; ?>
                         <?php if ($application['monthly_income']): ?>
@@ -565,15 +571,15 @@ close_db_connection($conn);
                     </h2>
                     <div class="d-flex flex-wrap gap-3">
                         <?php if ($application['id_document_path']): ?>
-                            <a href="../../storage/<?php echo htmlspecialchars($application['id_document_path']); ?>" 
-                               class="document-link" target="_blank">
+                            <a href="../../storage/<?php echo htmlspecialchars($application['id_document_path']); ?>"
+                                class="document-link" target="_blank">
                                 <i class="bi bi-file-earmark-person"></i>
                                 ID Document
                             </a>
                         <?php endif; ?>
                         <?php if ($application['income_document_path']): ?>
-                            <a href="../../storage/<?php echo htmlspecialchars($application['income_document_path']); ?>" 
-                               class="document-link" target="_blank">
+                            <a href="../../storage/<?php echo htmlspecialchars($application['income_document_path']); ?>"
+                                class="document-link" target="_blank">
                                 <i class="bi bi-file-earmark-bar-graph"></i>
                                 Income Proof
                             </a>
@@ -590,17 +596,20 @@ close_db_connection($conn);
             <div class="modal-content glass-modal">
                 <div class="modal-header">
                     <h5 class="modal-title" id="rejectionModalLabel">Confirm Rejection</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p>Are you sure you want to reject this application? This action cannot be undone.</p>
                     <div class="mb-3">
                         <label for="rejectionReason" class="form-label">Reason for Rejection (Optional)</label>
-                        <textarea class="form-control rejection-reason-input" id="rejectionReason" rows="3" placeholder="Explain why the application is being rejected..."></textarea>
+                        <textarea class="form-control rejection-reason-input" id="rejectionReason" rows="3"
+                            placeholder="Explain why the application is being rejected..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger-gradient" onclick="confirmRejection()">
                         Confirm Rejection
                     </button>
@@ -613,7 +622,7 @@ close_db_connection($conn);
     <script>
         let rejectionModal = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             rejectionModal = new bootstrap.Modal(document.getElementById('rejectionModal'));
         });
 
@@ -643,19 +652,37 @@ close_db_connection($conn);
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('An error occurred. Please try again.');
-                console.error('Error:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Real-time UI Update
+                        if (rejectionModal) rejectionModal.hide();
+
+                        // Update Badge
+                        const badge = document.getElementById('application-status-badge');
+                        if (badge) {
+                            badge.textContent = status;
+                            badge.className = 'status-badge status-' + status.toLowerCase();
+                        }
+
+                        // Remove Actions
+                        const actions = document.getElementById('status-actions');
+                        if (actions) {
+                            actions.style.transition = 'all 0.5s ease';
+                            actions.style.opacity = '0';
+                            setTimeout(() => actions.remove(), 500);
+                        }
+
+                        // Show success message (using a simple alert for now, but UI is updated)
+                        console.log(data.message);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred. Please try again.');
+                    console.error('Error:', error);
+                });
         }
     </script>
 </body>
