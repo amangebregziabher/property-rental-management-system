@@ -61,7 +61,8 @@ try {
                 p.id AS property_id,
                 p.title AS property_title,
                 p.location AS property_location,
-                p.price AS property_price
+                p.price AS property_price,
+                (SELECT MAX(changed_at) FROM application_status_history ash WHERE ash.application_id = ra.id) as status_updated_at
             FROM rental_applications ra
             LEFT JOIN properties p ON ra.property_id = p.id
             WHERE ra.user_id = ?
