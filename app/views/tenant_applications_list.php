@@ -733,13 +733,20 @@ close_db_connection($conn);
                                                     </div>
                                                     <div>
                                                         <div class="text-white fw-bold">
-                                                            <?php echo htmlspecialchars($app['applicant_name']); ?></div>
+                                                            <?php echo htmlspecialchars($app['applicant_name']); ?>
+                                                        </div>
                                                         <div class="small text-white-50">
                                                             <i class="bi bi-envelope me-1"></i>
                                                             <?php echo htmlspecialchars($app['applicant_email']); ?>
                                                             <span class="mx-2">•</span>
                                                             <i class="bi bi-telephone me-1"></i>
                                                             <?php echo htmlspecialchars($app['applicant_phone'] ?? 'N/A'); ?>
+                                                        </div>
+                                                        <div class="small text-white-50 mt-1">
+                                                            <i class="bi bi-calendar3 me-1"></i>
+                                                            Applied: <?php echo date('M d, Y', strtotime($app['created_at'])); ?>
+                                                            <i class="bi bi-clock ms-2 me-1"></i>
+                                                            <?php echo date('g:i A', strtotime($app['created_at'])); ?>
                                                         </div>
                                                     </div>
                                                 </div>

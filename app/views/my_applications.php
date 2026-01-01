@@ -31,6 +31,26 @@ $user_role = $_SESSION['user_role'];
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    @keyframes pulse-blue {
+      0% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+      }
+    }
+
+    .status-updated {
+      animation: pulse-blue 2s infinite;
+      border: 1px solid rgba(13, 110, 253, 0.3) !important;
+    }
+  </style>
 </head>
 
 <body class="tenant-portal">
@@ -156,6 +176,33 @@ $user_role = $_SESSION['user_role'];
 
           const appId = app.application_id.toString().padStart(4, '0');
 
+          // Check for status updates
+          let statusUpdateHtml = '';
+          let cardClass = '';
+
+          if (app.status_updated_at && app.application_status !== 'Pending') {
+            const updatedDate = new Date(app.status_updated_at);
+            const now = new Date();
+            const diffTime = Math.abs(now - updatedDate);
+            const diffH = Math.ceil(diffTime / (1000 * 60 * 60)); // Hours
+
+            // If updated within last 72 hours (3 days)
+            if (diffH <= 72) {
+              const timeAgo = diffH < 24 ?
+                (diffH <= 1 ? 'Just now' : `${diffH}h ago`) :
+                `${Math.ceil(diffH / 24)}d ago`;
+
+              statusUpdateHtml = `
+                    <div class="mb-2">
+                        <span class="badge bg-primary text-white rounded-pill pulse-badge">
+                            <i class="bi bi-bell-fill me-1"></i> Status Updated ${timeAgo}
+                        </span>
+                    </div>
+                 `;
+              cardClass = 'status-updated';
+            }
+          }
+
           let messageHtml = '';
           if (app.application_message) {
             messageHtml = `
@@ -168,7 +215,7 @@ $user_role = $_SESSION['user_role'];
 
           return `
             <div class="col-12">
-              <div class="card glass-panel border-0 rounded-4 overflow-hidden shadow-sm hover-up">
+              <div class="card glass-panel border-0 rounded-4 overflow-hidden shadow-sm hover-up ${cardClass}">
                 <div class="row g-0">
                   <div class="col-md-9 p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -179,11 +226,12 @@ $user_role = $_SESSION['user_role'];
                           ${escapeHtml(app.property_location || 'N/A')}
                         </p>
                       </div>
-                      <div class="text-end">
-                        <span class="badge ${statusClass} px-3 py-2 rounded-pill text-uppercase" style="font-size: 0.7rem;">
-                          ${app.application_status}
-                        </span>
-                      </div>
+                        <div class="text-end">
+                          ${statusUpdateHtml}
+                          <span class="badge ${statusClass} px-3 py-2 rounded-pill text-uppercase" style="font-size: 0.7rem;">
+                            ${app.application_status}
+                          </span>
+                        </div>
                     </div>
 
                     <div class="row g-3">
