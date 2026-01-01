@@ -98,17 +98,19 @@ try {
 
   $conn = get_db_connection();
 
-  // Check if property exists
-  $check_sql = "SELECT id FROM properties WHERE id = ?";
+  // Check if property exists and get owner_id
+  $check_sql = "SELECT id, owner_id FROM properties WHERE id = ?";
   $check_stmt = mysqli_prepare($conn, $check_sql);
   mysqli_stmt_bind_param($check_stmt, "i", $property_id);
   mysqli_stmt_execute($check_stmt);
-  mysqli_stmt_store_result($check_stmt);
+  $result = mysqli_stmt_get_result($check_stmt);
+  $property_row = mysqli_fetch_assoc($result);
 
-  if (mysqli_stmt_num_rows($check_stmt) === 0) {
+  if (!$property_row) {
     mysqli_stmt_close($check_stmt);
     send_response(false, 'Property not found', [], ['property_id' => 'Invalid Property ID'], 404);
   }
+  $owner_id = $property_row['owner_id'];
   mysqli_stmt_close($check_stmt);
 
   // Prepare User ID (if logged in)
@@ -141,6 +143,19 @@ try {
 
   if (mysqli_stmt_execute($stmt)) {
     $application_id = mysqli_insert_id($conn);
+
+    // Create Notification for Owner
+    $notif_sql = "INSERT INTO notifications (user_id, type, title, message, related_id) VALUES (?, 'application_received', ?, ?, ?)";
+    $notif_title = "New Rental Application";
+    $notif_message = "You have received a new application for your property from " . $applicant_name;
+    
+    $notif_stmt = mysqli_prepare($conn, $notif_sql);
+    if ($notif_stmt) {
+        mysqli_stmt_bind_param($notif_stmt, "issi", $owner_id, $notif_title, $notif_message, $application_id);
+        mysqli_stmt_execute($notif_stmt);
+        mysqli_stmt_close($notif_stmt);
+    }
+
     send_response(true, 'Application submitted successfully', ['application_id' => $application_id]);
   } else {
     throw new Exception("Database execute error: " . mysqli_stmt_error($stmt));
