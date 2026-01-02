@@ -66,17 +66,38 @@ body {
 .landing-page .text-secondary,
 .tenant-portal .text-secondary,
 .auth-page .text-secondary,
-.beautified-page .text-muted,
-/* Added beautified-page .text-muted */
-.landing-page .text-muted,
-.tenant-portal .text-muted,
-.auth-page .text-muted,
-.beautified-page .text-white-50,
-.landing-page .text-white-50,
 .tenant-portal .text-white-50,
 .auth-page .text-white-50 {
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
 }
+
+/* Ensure headings and common elements are visible on dark themed pages */
+.beautified-page h1, .beautified-page h2, .beautified-page h3, .beautified-page h4, .beautified-page h5, .beautified-page h6,
+.landing-page h1, .landing-page h2, .landing-page h3, .landing-page h4, .landing-page h5, .landing-page h6,
+.tenant-portal h1, .tenant-portal h2, .tenant-portal h3, .tenant-portal h4, .tenant-portal h5, .tenant-portal h6,
+.beautified-page .card-title, .landing-page .card-title, .tenant-portal .card-title {
+    color: #ffffff !important;
+}
+
+.beautified-page .card, .landing-page .card, .tenant-portal .card {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff !important;
+}
+
+.beautified-page .text-muted, .landing-page .text-muted, .tenant-portal .text-muted,
+.beautified-page .text-secondary, .landing-page .text-secondary, .tenant-portal .text-secondary {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.beautified-page .text-dark, .landing-page .text-dark, .tenant-portal .text-dark {
+    color: var(--white) !important;
+}
+
+.beautified-page .bg-light, .landing-page .bg-light, .tenant-portal .bg-light {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 
 /* Auth Page Specific Styles */
 .auth-page {
@@ -131,13 +152,24 @@ body {
 }
 
 @keyframes float {
-    0% {
-        transform: translate(0, 0) scale(1);
-    }
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, 100px) scale(1.1); }
+}
 
-    100% {
-        transform: translate(50px, 100px) scale(1.1);
-    }
+.beautified-page .text-primary, .landing-page .text-primary, .tenant-portal .text-primary { color: #58a6ff !important; }
+.beautified-page .text-primary-light, .landing-page .text-primary-light, .tenant-portal .text-primary-light { color: #a2d2fb !important; }
+.beautified-page .text-success, .landing-page .text-success, .tenant-portal .text-success { color: #3fb950 !important; }
+.beautified-page .text-info, .landing-page .text-info, .tenant-portal .text-info { color: #a2d2fb !important; }
+.beautified-page .text-warning, .landing-page .text-warning, .tenant-portal .text-warning { color: #d29922 !important; }
+
+/* Pulse animation for available status */
+.pulse-green {
+    width: 10px;
+    height: 10px;
+    background: #3fb950;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.7);
+    animation: pulse-green 2s infinite;
 }
 
 .auth-card {
@@ -348,29 +380,6 @@ footer.bg-dark {
     }
 }
 
-/* Global Overrides for Dark Visibility */
-.beautified-page .text-dark,
-.landing-page .text-dark,
-.tenant-portal .text-dark {
-    color: var(--white) !important;
-}
-
-.beautified-page .bg-light,
-.landing-page .bg-light,
-.tenant-portal .bg-light {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.beautified-page .text-muted,
-.landing-page .text-muted,
-.tenant-portal .text-muted,
-.beautified-page .text-secondary,
-.landing-page .text-secondary,
-.tenant-portal .text-secondary {
-    color: rgba(255, 255, 255, 0.8) !important;
-    /* Boosted visibility */
-}
 
 /* Premium Table Redesign */
 .premium-table {

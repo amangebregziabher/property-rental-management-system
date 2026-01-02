@@ -59,7 +59,8 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESS
                                 <i class="bi bi-person-circle fs-5"></i>
                                 <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-lg mt-2 dropdown-menu-dark">
+                            <ul
+                                class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-lg mt-2 dropdown-menu-dark">
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
                                     <li><a class="dropdown-item" href="../app/views/property_list.php">Owner Dashboard</a></li>
                                     <li><a class="dropdown-item" href="../app/views/manage_applications.php">Manage
@@ -74,7 +75,8 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESS
                         </li>
                     <?php else: ?>
                         <li class="nav-item ms-lg-3">
-                            <a href="../app/views/login.php" class="btn btn-primary btn-sm px-4 shadow-sm text-white">Login</a>
+                            <a href="../app/views/login.php"
+                                class="btn btn-primary btn-sm px-4 shadow-sm text-white">Login</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -87,7 +89,8 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESS
         <div class="container position-relative z-1 py-5">
             <div class="row align-items-center">
                 <div class="col-lg-6 text-center text-lg-start animate-up">
-                    <span class="badge bg-primary bg-opacity-20 text-white px-3 py-2 rounded-pill mb-3 fw-bold">#1 Selection of Premium Rentals</span>
+                    <span class="badge bg-primary bg-opacity-20 text-white px-3 py-2 rounded-pill mb-3 fw-bold">#1
+                        Selection of Premium Rentals</span>
                     <h1 class="display-3 fw-bold mb-4">Your Journey to a <span class="text-gradient">Better Home</span>
                         Starts Here</h1>
                     <p class="lead text-secondary mb-5">Connect with property owners and discover exceptional
@@ -135,20 +138,21 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESS
             <div class="row g-4">
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 border-0 glass-panel p-4 rounded-4 hover-up shadow-sm">
-                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center mb-4"
+                        <div class="icon-box bg-primary bg-opacity-20 text-primary rounded-4 d-flex align-items-center justify-content-center mb-4"
                             style="width: 60px; height: 60px;">
                             <i class="bi bi-search fs-3"></i>
                         </div>
                         <h4 class="fw-bold">Smart Search</h4>
                         <p class="text-secondary">Filter by location, price, and property type to find exactly what
                             you're looking for.</p>
+                        <a href="../app/views/tenant_view.php"
                             class="btn btn-link text-primary-light p-0 fw-bold text-decoration-none">Browse Now <i
                                 class="bi bi-chevron-right small"></i></a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 border-0 glass-panel p-4 rounded-4 hover-up shadow-sm">
-                        <div class="icon-box bg-success bg-opacity-10 text-success rounded-4 d-flex align-items-center justify-content-center mb-4"
+                        <div class="icon-box bg-success bg-opacity-20 text-success rounded-4 d-flex align-items-center justify-content-center mb-4"
                             style="width: 60px; height: 60px;">
                             <i class="bi bi-shield-check fs-3"></i>
                         </div>
@@ -162,7 +166,7 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESS
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 border-0 glass-panel p-4 rounded-4 hover-up shadow-sm">
-                        <div class="icon-box bg-info bg-opacity-10 text-info rounded-4 d-flex align-items-center justify-content-center mb-4"
+                        <div class="icon-box bg-info bg-opacity-20 text-info rounded-4 d-flex align-items-center justify-content-center mb-4"
                             style="width: 60px; height: 60px;">
                             <i class="bi bi-clock-history fs-3"></i>
                         </div>
