@@ -34,18 +34,18 @@ unset($_SESSION['form_data']);
                 <!-- Logo/Home Link -->
                 <div class="text-center mb-5 animate-up">
                     <a href="../../public/index.php" class="text-decoration-none d-inline-block">
-                        <h1 class="display-3 fw-bold text-white mb-0">PRMS</h1>
-                        <p class="text-white opacity-50 small text-uppercase ls-2">Become Part of the Elite Community</p>
+                        <h1 class="display-3 fw-bold text-gradient mb-0">PRMS</h1>
+                        <p class="text-white-50 small text-uppercase ls-2">Become Part of the Elite Community</p>
                     </a>
                 </div>
 
-                <div class="card auth-card border-0 rounded-4 overflow-hidden animate-up" style="animation-delay: 0.1s;">
+                <div class="card auth-card border-0 rounded-4 overflow-hidden animate-up delay-1">
                     <div class="row g-0">
                         <div class="col-lg-12">
                             <div class="card-body p-4 p-md-5">
-                                <div class="text-center mb-5">
-                                    <h2 class="fw-bold text-white mb-2">Create Account</h2>
-                                    <p class="text-white opacity-50 small">Fill in your details to get started with PRMS</p>
+                                <div class="text-center mb-5 animate-up delay-1">
+                                    <h2 class="fw-bold text-gradient mb-2">Create Account</h2>
+                                    <p class="text-white-50 small">Fill in your details to get started with PRMS</p>
                                 </div>
                                 
                                 <?php if (!empty($errors)): ?>
@@ -60,31 +60,31 @@ unset($_SESSION['form_data']);
 
                                 <form action="../controllers/auth_controller.php?action=register" method="POST">
                                     <div class="row g-4">
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 animate-up delay-2">
                                             <label for="name" class="form-label small fw-bold">Full Name</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-person text-white opacity-50"></i></span>
+                                                <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-person text-white-50"></i></span>
                                                 <input type="text" class="form-control border-start-0 py-3" id="name" name="name" value="<?php echo htmlspecialchars($form_data['name'] ?? ''); ?>" placeholder="John Doe" required>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 animate-up delay-2">
                                             <label for="email" class="form-label small fw-bold">Email Address</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-envelope text-white opacity-50"></i></span>
+                                                <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-envelope text-white-50"></i></span>
                                                 <input type="email" class="form-control border-start-0 py-3" id="email" name="email" value="<?php echo htmlspecialchars($form_data['email'] ?? ''); ?>" placeholder="name@example.com" required>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-12">
+                                        <div class="col-md-12 animate-up delay-3">
                                             <label for="password" class="form-label small fw-bold">Create Password</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-shield-lock text-white opacity-50"></i></span>
+                                                <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-shield-lock text-white-50"></i></span>
                                                 <input type="password" class="form-control border-start-0 py-3" id="password" name="password" placeholder="At least 6 characters" required>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-12 mb-2">
+                                        <div class="col-md-12 mb-2 animate-up delay-3">
                                             <label class="form-label small fw-bold d-block text-center mb-4">What's your primary goal?</label>
                                             <div class="row g-3">
                                                 <div class="col-md-6">
@@ -94,7 +94,7 @@ unset($_SESSION['form_data']);
                                                             <i class="bi bi-house-heart fs-1"></i>
                                                         </div>
                                                         <div class="fw-bold fs-5 mb-1">Find a Home</div>
-                                                        <div class="small opacity-50">I'm looking for the perfect rental property.</div>
+                                                        <div class="small text-white-50">I'm looking for the perfect rental property.</div>
                                                     </label>
                                                 </div>
                                                 <div class="col-md-6">
@@ -104,7 +104,7 @@ unset($_SESSION['form_data']);
                                                             <i class="bi bi-building-check fs-1"></i>
                                                         </div>
                                                         <div class="fw-bold fs-5 mb-1">List Property</div>
-                                                        <div class="small opacity-50">I want to manage and rent out my properties.</div>
+                                                        <div class="small text-white-50">I want to manage and rent out my properties.</div>
                                                     </label>
                                                 </div>
                                             </div>
@@ -119,13 +119,13 @@ unset($_SESSION['form_data']);
                                             </div>
                                         </div>
 
-                                        <div class="col-md-12">
-                                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 shadow-lg fw-bold mb-4">
+                                        <div class="col-md-12 animate-up delay-4">
+                                            <button type="submit" class="btn btn-gradient w-100 py-3 rounded-3 shadow-lg fw-bold mb-4">
                                                 Create Account <i class="bi bi-person-plus fs-5 ms-2"></i>
                                             </button>
                                             
                                             <div class="text-center">
-                                                <p class="small text-white opacity-50 mb-0">Member already? <a href="login.php" class="fw-bold text-white text-decoration-none border-bottom">Sign in to your dashboard</a></p>
+                                                <p class="small text-white-50 mb-0">Member already? <a href="login.php" class="fw-bold text-white text-decoration-none border-bottom">Sign in to your dashboard</a></p>
                                             </div>
                                         </div>
                                     </div>
@@ -136,8 +136,8 @@ unset($_SESSION['form_data']);
                 </div>
 
                 <!-- Footer Links -->
-                <div class="text-center mt-5 opacity-25 animate-up" style="animation-delay: 0.2s;">
-                    <p class="small text-white mb-0">&copy; 2024 PRMS. Redefining property management.</p>
+                <div class="text-center mt-5 text-white-50 opacity-25 animate-up delay-4">
+                    <p class="small mb-0">&copy; 2024 PRMS. Redefining property management.</p>
                 </div>
             </div>
         </div>

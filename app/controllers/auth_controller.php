@@ -131,17 +131,20 @@ function handleLogin()
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_role'] = $user['role'];
+        $_SESSION['user_role'] = strtolower(trim($user['role']));
 
         if (!empty($redirect)) {
             header("Location: $redirect");
         } else {
             // Default redirects based on role
-            if ($user['role'] === 'admin') {
+            $role = strtolower(trim($user['role']));
+            
+            if ($role === 'admin') {
                 header('Location: ../views/admin_dashboard.php');
-            } elseif ($user['role'] === 'owner') {
+            } elseif ($role === 'owner') {
                 header('Location: ../views/property_list.php');
             } else {
+                // Default to tenant view for tenants or unknown roles
                 header('Location: ../views/tenant_view.php');
             }
         }

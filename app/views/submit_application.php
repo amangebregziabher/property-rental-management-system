@@ -55,7 +55,7 @@ close_db_connection($conn);
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 0.5rem;
         }
 
@@ -72,6 +72,19 @@ close_db_connection($conn);
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+        }
+
+        /* Fix for select arrow visibility */
+        .application-form .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba(255, 255, 255, 0.8)' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px 12px;
+        }
+
+        .application-form .form-select option {
+            background-color: #0f172a;
+            color: white;
         }
 
         .upload-area {
@@ -106,6 +119,7 @@ close_db_connection($conn);
             font-weight: bold;
             margin-right: 1rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white !important;
         }
 
         .step-indicator.active {
@@ -126,6 +140,22 @@ close_db_connection($conn);
             height: 80px;
             object-fit: cover;
             border-radius: 12px;
+        }
+
+        /* Ensure Submit Button is always visible */
+        .btn-gradient {
+            background: #4361ee !important; /* Solid fallback */
+            background: linear-gradient(45deg, #4361ee, #4895ef) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4) !important;
+            filter: brightness(1.1) !important;
         }
     </style>
 </head>
@@ -218,7 +248,7 @@ close_db_connection($conn);
                             <!-- Step 1: Personal Information -->
                             <div class="section-title d-flex align-items-center mb-4">
                                 <div class="step-indicator active">1</div>
-                                <h5 class="fw-bold mb-0">Personal Information</h5>
+                                <h5 class="fw-bold mb-0 text-white">Personal Information</h5>
                             </div>
 
                             <div class="row g-4 mb-5">
@@ -252,7 +282,7 @@ close_db_connection($conn);
                             <!-- Step 2: Employment & Income -->
                             <div class="section-title d-flex align-items-center mb-4">
                                 <div class="step-indicator active">2</div>
-                                <h5 class="fw-bold mb-0">Employment & Financials</h5>
+                                <h5 class="fw-bold mb-0 text-white">Employment & Financials</h5>
                             </div>
 
                             <div class="row g-4 mb-5">
@@ -289,7 +319,7 @@ close_db_connection($conn);
                             <!-- Step 3: Document Upload -->
                             <div class="section-title d-flex align-items-center mb-4">
                                 <div class="step-indicator active">3</div>
-                                <h5 class="fw-bold mb-0">Required Documents</h5>
+                                <h5 class="fw-bold mb-0 text-white">Required Documents</h5>
                             </div>
 
                             <p class="text-secondary small mb-4">Please upload scanned copies of your ID/Passport and
@@ -299,8 +329,8 @@ close_db_connection($conn);
                                 <div class="col-md-6">
                                     <div class="upload-area" onclick="document.getElementById('id_doc').click()">
                                         <i class="bi bi-file-earmark-person upload-icon"></i>
-                                        <h6 class="fw-bold mb-1">Government ID / Passport</h6>
-                                        <p class="text-muted small mb-0" id="id_doc_name">Click to browse files</p>
+                                        <h6 class="fw-bold mb-1 text-white">Government ID / Passport</h6>
+                                        <p class="text-white-50 small mb-0" id="id_doc_name">Click to browse files</p>
                                         <input type="file" name="id_document" id="id_doc" class="d-none"
                                             accept=".pdf,.jpg,.png" onchange="updateFileName(this, 'id_doc_name')"
                                             required>
@@ -309,8 +339,8 @@ close_db_connection($conn);
                                 <div class="col-md-6">
                                     <div class="upload-area" onclick="document.getElementById('income_doc').click()">
                                         <i class="bi bi-file-earmark-medical upload-icon"></i>
-                                        <h6 class="fw-bold mb-1">Proof of Income (Pay Stubs)</h6>
-                                        <p class="text-muted small mb-0" id="income_doc_name">Click to browse files</p>
+                                        <h6 class="fw-bold mb-1 text-white">Proof of Income (Pay Stubs)</h6>
+                                        <p class="text-white-50 small mb-0" id="income_doc_name">Click to browse files</p>
                                         <input type="file" name="income_document" id="income_doc" class="d-none"
                                             accept=".pdf,.jpg,.png" onchange="updateFileName(this, 'income_doc_name')"
                                             required>
@@ -327,7 +357,7 @@ close_db_connection($conn);
 
                             <!-- Submission -->
                             <div class="d-grid gap-3">
-                                <button type="submit" class="btn btn-primary py-3 fw-bold text-uppercase fs-6">
+                                <button type="submit" class="btn btn-gradient py-3 fw-bold text-uppercase fs-6">
                                     Submit Application <i class="bi bi-send ms-2"></i>
                                 </button>
                                 <a href="property_details.php?id=<?php echo $property_id; ?>"

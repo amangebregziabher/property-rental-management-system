@@ -31,22 +31,22 @@ $redirect_to = $_GET['redirect_to'] ?? '';
         <div class="shape shape-3"></div>
     </div>
 
-    <div class="container py-5">
+    <div class="container py-5 position-relative" style="z-index: 2;">
         <div class="row min-vh-100 align-items-center justify-content-center">
             <div class="col-12 col-md-8 col-lg-5">
                 <!-- Logo/Home Link -->
                 <div class="text-center mb-5 animate-up">
                     <a href="../../public/index.php" class="text-decoration-none d-inline-block">
-                        <h1 class="display-3 fw-bold text-white mb-0">PRMS</h1>
-                        <p class="text-white opacity-50 small text-uppercase ls-2">The Gold Standard in Property Management</p>
+                        <h1 class="display-3 fw-bold text-gradient mb-0">PRMS</h1>
+                        <p class="text-white-50 small text-uppercase ls-2">The Gold Standard in Property Management</p>
                     </a>
                 </div>
 
-                <div class="card auth-card border-0 rounded-4 overflow-hidden animate-up" style="animation-delay: 0.1s;">
+                <div class="card auth-card border-0 rounded-4 overflow-hidden animate-up delay-1">
                     <div class="card-body p-4 p-md-5">
-                        <div class="text-center mb-4">
-                            <h2 class="fw-bold text-white mb-2">Welcome Back</h2>
-                            <p class="text-white opacity-50 small">Enter your credentials to access your dashboard</p>
+                        <div class="text-center mb-4 animate-up delay-1">
+                            <h2 class="fw-bold text-gradient mb-2">Welcome Back</h2>
+                            <p class="text-white-50 small">Enter your credentials to access your dashboard</p>
                         </div>
                         
                         <?php if (!empty($errors)): ?>
@@ -68,18 +68,18 @@ $redirect_to = $_GET['redirect_to'] ?? '';
                         <form action="../controllers/auth_controller.php?action=login" method="POST">
                             <input type="hidden" name="redirect_to" value="<?php echo htmlspecialchars($redirect_to); ?>">
                             
-                            <div class="mb-4">
+                            <div class="mb-4 animate-up delay-2">
                                 <label for="email" class="form-label small fw-bold">Email Address</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-envelope text-white opacity-50"></i></span>
+                                    <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-envelope text-white-50"></i></span>
                                     <input type="email" class="form-control border-start-0 py-3" id="email" name="email" placeholder="name@example.com" required>
                                 </div>
                             </div>
 
-                            <div class="mb-4">
+                            <div class="mb-4 animate-up delay-3">
                                 <label for="password" class="form-label small fw-bold">Password</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-shield-lock text-white opacity-50"></i></span>
+                                    <span class="input-group-text bg-transparent border-end-0 rounded-start-3"><i class="bi bi-shield-lock text-white-50"></i></span>
                                     <input type="password" class="form-control border-start-0 py-3" id="password" name="password" placeholder="••••••••" required>
                                 </div>
                             </div>
@@ -89,22 +89,22 @@ $redirect_to = $_GET['redirect_to'] ?? '';
                                     <input class="form-check-input bg-transparent border-white border-opacity-20" type="checkbox" id="remember" name="remember">
                                     <label class="form-check-label small text-white opacity-75" for="remember">Keep me signed in</label>
                                 </div>
-                                <a href="#" class="small text-decoration-none text-primary-light fw-bold">Forgot password?</a>
+                                <a href="#" class="small text-decoration-none text-primary-light fw-bold hover-glow">Forgot password?</a>
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 shadow-lg fw-bold mb-4">
+                            <button type="submit" class="btn btn-gradient w-100 py-3 rounded-3 shadow-lg fw-bold mb-4 animate-up delay-4">
                                 Sign In <i class="bi bi-arrow-right-short fs-4"></i>
                             </button>
 
                             <div class="text-center">
-                                <p class="small text-white opacity-50 mb-0">No account? <a href="register.php" class="fw-bold text-white text-decoration-none border-bottom">Start your journey today</a></p>
+                                <p class="small text-white-50 mb-0">No account? <a href="register.php" class="fw-bold text-white text-decoration-none border-bottom">Start your journey today</a></p>
                             </div>
                         </form>
                     </div>
                 </div>
 
                 <!-- Footer Links -->
-                <div class="text-center mt-5 animate-up" style="animation-delay: 0.2s;">
+                <div class="text-center mt-5 animate-up delay-4">
                     <p class="small text-white opacity-25 mb-0">&copy; 2024 PRMS. Crafting modern solutions.</p>
                 </div>
             </div>
@@ -114,7 +114,7 @@ $redirect_to = $_GET['redirect_to'] ?? '';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         .ls-2 { letter-spacing: 2px; }
-        .text-primary-light { color: #4cc9f0; }
+        .hover-glow:hover { text-shadow: 0 0 10px rgba(76, 149, 239, 0.5); color: white !important; }
         .border-bottom { border-bottom: 2px solid rgba(255,255,255,0.1) !important; transition: all 0.3s ease; }
         .border-bottom:hover { border-bottom-color: var(--primary) !important; color: white !important; }
     </style>

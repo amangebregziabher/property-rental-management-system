@@ -137,8 +137,8 @@ $conn = get_db_connection();
 // ============================================
 // STEP 6: INSERT PROPERTY INTO DATABASE
 // ============================================
-// For prototype, use owner_id = 1
-$owner_id = 1;
+// For prototype, use owner_id from session
+$owner_id = $_SESSION['user_id'];
 
 // Lookup category_id from type name
 $cat_sql = "SELECT id FROM categories WHERE name = ? LIMIT 1";

@@ -3,6 +3,7 @@ session_start();
 
 // Include database connection
 require_once __DIR__ . '/../../config/db_connect.php';
+require_once __DIR__ . '/../helpers/notification_helper.php';
 
 // Get filter parameters
 $search = trim($_GET['search'] ?? '');
@@ -62,6 +63,13 @@ while ($row = mysqli_fetch_assoc($result)) {
     $properties[] = $row;
 }
 
+// Get pending applications count for notification badge
+$pending_count = 0;
+if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin')) {
+    // We already have a connection $conn
+    $pending_count = get_pending_applications_count($conn, $_SESSION['user_id']);
+}
+
 close_db_connection($conn);
 ?>
 <!DOCTYPE html>
@@ -94,7 +102,15 @@ close_db_connection($conn);
                     </li>
                     <?php if (isset($_SESSION['user_id'])): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="tenant_applications_list.php">My Applications</a>
+                        <a class="nav-link" href="tenant_applications_list.php">
+                            My Applications
+                            <?php if ($_SESSION['user_role'] === 'tenant' && isset($pending_count) && $pending_count > 0): ?>
+                                <!-- Tenants don't usually need owner notifications, but the user asked for "the owner" -->
+                            <?php endif; ?>
+                            <?php if (($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin') && $pending_count > 0): ?>
+                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                     <?php endif; ?>
                     <?php if (isset($_SESSION['user_id'])): ?>
@@ -107,7 +123,14 @@ close_db_connection($conn);
                             <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">My Profile</a></li>
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
-                                    <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex justify-content-between align-items-center" href="property_list.php">
+                                            Owner Dashboard
+                                            <?php if ($pending_count > 0): ?>
+                                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
+                                            <?php endif; ?>
+                                        </a>
+                                    </li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>

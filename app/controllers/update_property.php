@@ -64,11 +64,21 @@ if (!empty($errors)) {
 $conn = get_db_connection();
 
 // ============================================
-// STEP 4: VERIFY OWNERSHIP (Prototype: skip actual user check, just check existence)
+// STEP 4: VERIFY OWNERSHIP
 // ============================================
-$check_sql = "SELECT id FROM properties WHERE id = ?";
-$check_stmt = mysqli_prepare($conn, $check_sql);
-mysqli_stmt_bind_param($check_stmt, "i", $property_id);
+$user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['user_role'] ?? 'tenant';
+
+if ($user_role === 'admin') {
+    $check_sql = "SELECT id FROM properties WHERE id = ?";
+    $check_stmt = mysqli_prepare($conn, $check_sql);
+    mysqli_stmt_bind_param($check_stmt, "i", $property_id);
+} else {
+    $check_sql = "SELECT id FROM properties WHERE id = ? AND owner_id = ?";
+    $check_stmt = mysqli_prepare($conn, $check_sql);
+    mysqli_stmt_bind_param($check_stmt, "ii", $property_id, $user_id);
+}
+
 mysqli_stmt_execute($check_stmt);
 if (!mysqli_fetch_assoc(mysqli_stmt_get_result($check_stmt))) {
     $_SESSION['error_message'] = "Property not found or access denied";

@@ -7,6 +7,15 @@ session_start();
 
 define('BASE_PATH', dirname(__DIR__));
 define('APP_PATH', BASE_PATH . '/app');
+
+// Include notification helper for owners
+if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin')) {
+    require_once APP_PATH . '/helpers/notification_helper.php';
+    require_once BASE_PATH . '/config/db_connect.php';
+    $conn = get_db_connection();
+    $pending_count = get_pending_applications_count($conn, $_SESSION['user_id']);
+    close_db_connection($conn);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,14 +47,9 @@ define('APP_PATH', BASE_PATH . '/app');
                     <li class="nav-item">
                         <a class="nav-link" href="../app/views/tenant_view.php">Find a Home</a>
                     </li>
-                    <?php if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] ?? 'tenant') === 'tenant'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../app/views/tenant_applications_list.php">My Applications</a>
-                    </li>
-                    <?php endif; ?>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="../app/views/my_applications.php">My Applications</a>
+                            <a class="nav-link" href="../app/views/tenant_applications_list.php">My Applications</a>
                         </li>
                     <?php endif; ?>
                     <?php if (isset($_SESSION['user_id'])): ?>
@@ -55,9 +59,16 @@ define('APP_PATH', BASE_PATH . '/app');
                                 <i class="bi bi-person-circle fs-5"></i>
                                 <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
+                            <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-lg mt-2 dropdown-menu-dark">
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
-                                    <li><a class="dropdown-item" href="../app/views/property_list.php">Owner Dashboard</a></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex justify-content-between align-items-center" href="../app/views/property_list.php">
+                                            Owner Dashboard
+                                            <?php if (isset($pending_count) && $pending_count > 0): ?>
+                                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
+                                            <?php endif; ?>
+                                        </a>
+                                    </li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
@@ -68,7 +79,7 @@ define('APP_PATH', BASE_PATH . '/app');
                         </li>
                     <?php else: ?>
                         <li class="nav-item ms-lg-3">
-                            <a href="../app/views/login.php" class="btn btn-outline-primary btn-sm px-4">Owner Portal</a>
+                            <a href="../app/views/login.php" class="btn btn-primary btn-sm px-4 shadow-sm text-white">Login</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -81,11 +92,10 @@ define('APP_PATH', BASE_PATH . '/app');
         <div class="container position-relative z-1 py-5">
             <div class="row align-items-center">
                 <div class="col-lg-6 text-center text-lg-start animate-up">
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3 fw-bold">#1
-                        Selection of Premium Rentals</span>
+                    <span class="badge bg-primary bg-opacity-20 text-white px-3 py-2 rounded-pill mb-3 fw-bold">#1 Selection of Premium Rentals</span>
                     <h1 class="display-3 fw-bold mb-4">Your Journey to a <span class="text-gradient">Better Home</span>
                         Starts Here</h1>
-                    <p class="lead text-secondary mb-5 op-75">Connect with property owners and discover exceptional
+                    <p class="lead text-secondary mb-5">Connect with property owners and discover exceptional
                         living spaces tailored to your lifestyle. Simple, transparent, and beautiful.</p>
                     <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
                         <a href="../app/views/tenant_view.php"
@@ -93,7 +103,7 @@ define('APP_PATH', BASE_PATH . '/app');
                             Find a Home <i class="bi bi-arrow-right-short fs-4"></i>
                         </a>
                         <a href="../app/views/login.php"
-                            class="btn btn-white btn-lg px-5 py-3 rounded-4 shadow-sm fw-bold border">
+                            class="btn btn-outline-light btn-lg px-5 py-3 rounded-4 shadow-sm fw-bold backdrop-blur">
                             List Your Property
                         </a>
                     </div>
@@ -101,20 +111,20 @@ define('APP_PATH', BASE_PATH . '/app');
                 <div class="col-lg-6 mt-5 mt-lg-0 d-none d-lg-block animate-up" style="animation-delay: 0.2s;">
                     <div class="hero-image-container position-relative">
                         <div
-                            class="glass-card shadow-lg p-3 rounded-4 position-absolute top-0 start-0 translate-middle mt-5 ms-5 z-2 animate-bounce">
+                            class="glass-panel shadow-lg p-3 rounded-4 position-absolute top-0 start-0 translate-middle mt-5 ms-5 z-2 animate-bounce">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="bg-success text-white rounded-circle p-1"><i class="bi bi-check2 small"></i>
                                 </div>
-                                <span class="small fw-bold">Verified Listings</span>
+                                <span class="small fw-bold text-white">Verified Listings</span>
                             </div>
                         </div>
                         <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800"
                             class="img-fluid rounded-5 shadow-2xl" alt="Modern House">
                         <div
-                            class="glass-card shadow-lg p-3 rounded-4 position-absolute bottom-0 end-0 translate-middle-x mb-n4 z-2 animate-up">
+                            class="glass-panel shadow-lg p-3 rounded-4 position-absolute bottom-0 end-0 translate-middle-x mb-n4 z-2 animate-up">
                             <div class="d-flex align-items-center gap-3">
-                                <span class="display-6 fw-bold text-primary">500+</span>
-                                <span class="small text-muted fw-bold">Available<br>Properties</span>
+                                <span class="display-6 fw-bold text-primary-light">500+</span>
+                                <span class="small text-white-50 fw-bold">Available<br>Properties</span>
                             </div>
                         </div>
                     </div>
@@ -137,8 +147,7 @@ define('APP_PATH', BASE_PATH . '/app');
                         <h4 class="fw-bold">Smart Search</h4>
                         <p class="text-secondary">Filter by location, price, and property type to find exactly what
                             you're looking for.</p>
-                        <a href="../app/views/tenant_view.php"
-                            class="btn btn-link text-primary p-0 fw-bold text-decoration-none">Browse Now <i
+                            class="btn btn-link text-primary-light p-0 fw-bold text-decoration-none">Browse Now <i
                                 class="bi bi-chevron-right small"></i></a>
                     </div>
                 </div>

@@ -228,10 +228,10 @@ close_db_connection($conn);
                                         <p class="small opacity-75 mb-4">Interested in renting? Submit your application now or
                                             schedule a tour.</p>
                                         <div class="d-grid gap-2">
-                                            <button class="btn btn-white fw-bold py-3" data-bs-toggle="modal"
-                                                data-bs-target="#applyModal">
+                                            <a href="submit_application.php?property_id=<?php echo $property_id; ?>" 
+                                               class="btn btn-light fw-bold py-3 px-4 shadow-sm border-0">
                                                 <i class="bi bi-pencil-square me-2"></i> Apply for Rental
-                                            </button>
+                                            </a>
                                             <button class="btn btn-outline-white fw-bold py-3">
                                                 <i class="bi bi-calendar-check me-2"></i> Schedule a Tour
                                             </button>
@@ -250,11 +250,10 @@ close_db_connection($conn);
                                         property or schedule a tour.</p>
                                     <div class="d-grid gap-2">
                                         <a href="login.php?redirect_to=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>"
-                                            class="btn btn-white fw-bold py-3">
+                                            class="btn btn-light fw-bold py-3">
                                             <i class="bi bi-box-arrow-in-right me-2"></i> Sign in to Apply
                                         </a>
-                                        <a href="register.php" class="btn btn-outline-white fw-bold py-3">Create Free
-                                            Account</a>
+                                        <a href="register.php" class="btn btn-outline-light fw-bold py-3">Create Free Account</a>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -278,124 +277,9 @@ close_db_connection($conn);
         </div>
     </footer>
 
-    <!-- Application Modal -->
-    <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-panel border-0 shadow-lg">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="applyModalLabel">Rental Application</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <form id="applicationForm">
-                    <div class="modal-body p-4">
-                        <input type="hidden" name="property_id" value="<?php echo $property_id; ?>">
-
-                        <div class="mb-3">
-                            <label class="form-label small text-uppercase fw-bold opacity-75">Full Name</label>
-                            <input type="text" name="applicant_name"
-                                class="form-control bg-dark text-white border-secondary py-2"
-                                value="<?php echo htmlspecialchars($_SESSION['user_name'] ?? ''); ?>" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small text-uppercase fw-bold opacity-75">Email Address</label>
-                            <input type="email" name="applicant_email"
-                                class="form-control bg-dark text-white border-secondary py-2"
-                                value="<?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?>" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small text-uppercase fw-bold opacity-75">Phone Number</label>
-                            <input type="tel" name="applicant_phone"
-                                class="form-control bg-dark text-white border-secondary py-2"
-                                placeholder="+1 (555) 000-0000" required>
-                        </div>
-
-                        <div class="mb-0">
-                            <label class="form-label small text-uppercase fw-bold opacity-75">Additional Message
-                                (Optional)</label>
-                            <textarea name="message" class="form-control bg-dark text-white border-secondary py-2"
-                                rows="3" placeholder="Tell the owner a bit about yourself..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-link text-white text-decoration-none"
-                            data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold rounded-pill" id="submitAppBtn">
-                            Submit Application
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="statusToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive"
-            aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body" id="toastMessage"></div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                    aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('applicationForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const btn = document.getElementById('submitAppBtn');
-            const originalBtnText = btn.innerHTML;
-            const formData = new FormData(this);
-            const data = {};
-            formData.forEach((value, key) => data[key] = value);
-
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
-
-            try {
-                const response = await fetch('../../api/submit_application.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-                const toast = new bootstrap.Toast(document.getElementById('statusToast'));
-                const toastEl = document.getElementById('statusToast');
-                const toastMsg = document.getElementById('toastMessage');
-
-                if (result.success) {
-                    toastEl.classList.remove('bg-danger');
-                    toastEl.classList.add('bg-success');
-                    toastMsg.innerText = result.message || 'Application submitted successfully!';
-                    this.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('applyModal')).hide();
-                } else {
-                    toastEl.classList.remove('bg-success');
-                    toastEl.classList.add('bg-danger');
-                    const errorMsgs = result.errors ? (Array.isArray(result.errors) ? result.errors : Object.values(result.errors)) : [];
-                    toastMsg.innerText = errorMsgs.length > 0 ? errorMsgs.join('\n') : (result.message || 'Error submitting application.');
-                }
-                toast.show();
-            } catch (error) {
-                console.error('Error:', error);
-                const toast = new bootstrap.Toast(document.getElementById('statusToast'));
-                const toastEl = document.getElementById('statusToast');
-                const toastMsg = document.getElementById('toastMessage');
-                toastEl.classList.remove('bg-success');
-                toastEl.classList.add('bg-danger');
-                toastMsg.innerText = 'An unexpected error occurred. Please try again.';
-                toast.show();
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalBtnText;
-            }
-        });
+        // Any other page specific scripts can go here
     </script>
     <style>
         .detail-hero-img {
@@ -433,26 +317,22 @@ close_db_connection($conn);
             }
         }
 
-        .btn-white {
+        .btn-light {
             background-color: #fff;
-            color: var(--bs-primary);
+            color: var(--primary);
             border: none;
+            transition: all 0.3s ease;
         }
 
-        .btn-white:hover {
-            background-color: #f8f9fa;
-            color: var(--bs-primary-dark);
+        .btn-light:hover {
+            background-color: #e0e7ff;
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-outline-white {
-            background-color: transparent;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            color: #fff;
-        }
-
-        .btn-outline-white:hover {
+        .btn-outline-light:hover {
             background-color: rgba(255, 255, 255, 0.1);
-            border-color: #fff;
             color: #fff;
         }
 

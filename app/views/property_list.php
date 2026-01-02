@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] !== 'owner' && $_SES
 
 // Include database connection
 require_once __DIR__ . '/../../config/db_connect.php';
+require_once __DIR__ . '/../helpers/notification_helper.php';
 
 $user_id = $_SESSION['user_id'];
 $user_role = $_SESSION['user_role'] ?? 'tenant';
@@ -16,11 +17,18 @@ $user_role = $_SESSION['user_role'] ?? 'tenant';
 // Fetch properties from database
 $conn = get_db_connection();
 
+// Get pending applications count for notification badge
+$pending_count = 0;
+if ($user_role === 'owner' || $user_role === 'admin') {
+    $pending_count = get_pending_applications_count($conn, $user_id);
+}
+
 // SQL differs based on role: Admin sees all, Owner sees only their own
-$sql = "SELECT p.*, u.name as owner_name,
+$sql = "SELECT p.*, u.name as owner_name, c.name as type,
         (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_main DESC, id ASC LIMIT 1) as main_image
         FROM properties p 
-        LEFT JOIN users u ON p.owner_id = u.id ";
+        LEFT JOIN users u ON p.owner_id = u.id 
+        LEFT JOIN categories c ON p.category_id = c.id";
 
 if ($user_role !== 'admin') {
     $sql .= " WHERE p.owner_id = ? ";
@@ -95,7 +103,12 @@ unset($_SESSION['error_message']);
                         <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="tenant_applications_list.php">Applications</a>
+                        <a class="nav-link" href="tenant_applications_list.php">
+                            Applications
+                            <?php if ($pending_count > 0): ?>
+                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#"
@@ -191,18 +204,18 @@ unset($_SESSION['error_message']);
         <!-- Inventory Table -->
         <div class="row animate-up" style="animation-delay: 0.1s;">
             <div class="col-12">
-                <div class="card glass-panel border-0 overflow-hidden">
+                <div class="card bg-transparent border-0 overflow-visible">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-dark">
+                        <table class="table premium-table align-middle mb-0">
+                            <thead>
                                 <tr class="text-white small text-uppercase fw-bold">
-                                    <th class="border-0 ps-4">Ref ID</th>
-                                    <th class="border-0">Preview</th>
-                                    <th class="border-0">Listing Title</th>
-                                    <th class="border-0">Monthly Rent</th>
-                                    <th class="border-0">Geography</th>
-                                    <th class="border-0">Status</th>
-                                    <th class="border-0 text-end pe-4">System Actions</th>
+                                    <th class="ps-4 py-3">Ref ID</th>
+                                    <th class="py-3">Preview</th>
+                                    <th class="py-3">Listing Title</th>
+                                    <th class="py-3">Monthly Rent</th>
+                                    <th class="py-3">Geography</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="text-end pe-4 py-3">System Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="border-0">
@@ -220,8 +233,9 @@ unset($_SESSION['error_message']);
                                 <?php else: ?>
                                     <?php foreach ($properties as $property): ?>
                                         <tr class="transition">
-                                            <td class="ps-4 fw-bold text-secondary">
-                                                #PROP-<?php echo str_pad($property['id'], 3, '0', STR_PAD_LEFT); ?></td>
+                                            <td class="ps-4">
+                                                <span class="ref-id-text">#PR-<?php echo str_pad($property['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                                            </td>
                                             <td>
                                                 <?php if ($property['main_image']):
                                                     $image_path = $property['main_image'];
@@ -241,13 +255,13 @@ unset($_SESSION['error_message']);
                                                     </div>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
-                                                <div class="fw-bold text-white">
+                                             <td>
+                                                <div class="listing-title-cell">
                                                     <?php echo htmlspecialchars($property['title']); ?></div>
-                                                <div class="small text-white-50 italic">
-                                                    <?php echo htmlspecialchars($property['type']); ?></div>
+                                                <div class="listing-subtitle-cell">
+                                                    <i class="bi bi-tag-fill me-1 small"></i><?php echo htmlspecialchars($property['type']); ?></div>
                                             </td>
-                                            <td class="fw-bold text-primary">
+                                            <td class="monthly-rent-text">
                                                 $<?php echo number_format($property['price'], 2); ?></td>
                                             <td>
                                                 <span class="small d-flex align-items-center gap-1">
