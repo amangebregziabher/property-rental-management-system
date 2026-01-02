@@ -14,6 +14,11 @@ require_once __DIR__ . '/../helpers/notification_helper.php';
 $user_id = $_SESSION['user_id'];
 $user_role = $_SESSION['user_role'] ?? 'tenant';
 
+// Get filter parameters
+$search = trim($_GET['search'] ?? '');
+$status_filter = $_GET['status'] ?? '';
+$category_filter = $_GET['category'] ?? '';
+
 // Fetch properties from database
 $conn = get_db_connection();
 
@@ -28,16 +33,43 @@ $sql = "SELECT p.*, u.name as owner_name, c.name as type,
         (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_main DESC, id ASC LIMIT 1) as main_image
         FROM properties p 
         LEFT JOIN users u ON p.owner_id = u.id 
-        LEFT JOIN categories c ON p.category_id = c.id";
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE 1=1";
+
+$params = [];
+$types = "";
 
 if ($user_role !== 'admin') {
-    $sql .= " WHERE p.owner_id = ? ";
+    $sql .= " AND p.owner_id = ?";
+    $params[] = $user_id;
+    $types .= "i";
 }
+
+if (!empty($search)) {
+    $sql .= " AND (p.title LIKE ? OR p.location LIKE ?)";
+    $search_term = "%$search%";
+    $params[] = $search_term;
+    $params[] = $search_term;
+    $types .= "ss";
+}
+
+if (!empty($status_filter)) {
+    $sql .= " AND p.status = ?";
+    $params[] = $status_filter;
+    $types .= "s";
+}
+
+if (!empty($category_filter)) {
+    $sql .= " AND c.name = ?";
+    $params[] = $category_filter;
+    $types .= "s";
+}
+
 $sql .= " ORDER BY p.created_at DESC";
 
 $stmt = mysqli_prepare($conn, $sql);
-if ($user_role !== 'admin') {
-    mysqli_stmt_bind_param($stmt, "i", $user_id);
+if (!empty($params)) {
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
 }
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -47,7 +79,15 @@ while ($row = mysqli_fetch_assoc($result)) {
     $properties[] = $row;
 }
 
-// Stats for dashboard
+// Fetch categories for filter
+$cat_sql = "SELECT * FROM categories ORDER BY name";
+$cat_result = mysqli_query($conn, $cat_sql);
+$categories = [];
+while ($cat = mysqli_fetch_assoc($cat_result)) {
+    $categories[] = $cat;
+}
+
+// Stats for dashboard (respecting filters? usually dashboard stats are global, let's keep them global for the owner)
 $stats_sql = "SELECT 
     COUNT(*) as total,
     SUM(CASE WHEN status = 'Available' THEN 1 ELSE 0 END) as available,
@@ -104,7 +144,7 @@ unset($_SESSION['error_message']);
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="manage_applications.php">Applications</a>
-                        <a class="nav-link" href="tenant_applications_list.php">Applications</a>
+                        <!-- Also showing tenant link if they have dual role or just based on design preference -->
                     </li>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#"
@@ -140,6 +180,9 @@ unset($_SESSION['error_message']);
                     <a href="manage_applications.php"
                         class="btn btn-outline-light btn-lg rounded-pill px-4 py-3 fw-bold shadow-lg me-2">
                         <i class="bi bi-file-earmark-person me-2"></i> Applications
+                        <?php if ($pending_count > 0): ?>
+                            <span class="badge bg-danger rounded-pill ms-2"><?php echo $pending_count; ?></span>
+                        <?php endif; ?>
                     </a>
                     <a href="add_property.php" class="btn btn-light btn-lg rounded-pill px-4 py-3 fw-bold shadow-lg">
                         <i class="bi bi-plus-lg me-2 text-primary"></i> Post New Listing
@@ -201,6 +244,42 @@ unset($_SESSION['error_message']);
             </div>
         <?php endif; ?>
 
+        <!-- Filters -->
+        <div class="card glass-panel border-0 mb-4 animate-up p-4">
+            <form action="" method="GET" class="row g-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control border-0"
+                            placeholder="Search properties by title or location..."
+                            value="<?php echo htmlspecialchars($search); ?>">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select border-0">
+                        <option value="">All Statuses</option>
+                        <option value="Available" <?php echo $status_filter === 'Available' ? 'selected' : ''; ?>>Available</option>
+                        <option value="Rented" <?php echo $status_filter === 'Rented' ? 'selected' : ''; ?>>Rented</option>
+                        <option value="Maintenance" <?php echo $status_filter === 'Maintenance' ? 'selected' : ''; ?>>Maintenance</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select border-0">
+                        <option value="">All Types</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo htmlspecialchars($cat['name']); ?>" 
+                                <?php echo $category_filter === $cat['name'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($cat['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i></button>
+                </div>
+            </form>
+        </div>
+
         <!-- Inventory Table -->
         <div class="row animate-up" style="animation-delay: 0.1s;">
             <div class="col-12">
@@ -224,9 +303,13 @@ unset($_SESSION['error_message']);
                                         <td colspan="7" class="text-center py-5">
                                             <div class="py-4">
                                                 <i class="bi bi-building-dash fs-1 text-muted opacity-50 mb-3 d-block"></i>
-                                                <p class="text-secondary lead">No properties listed yet.</p>
-                                                <a href="add_property.php" class="btn btn-sm btn-outline-primary">Post your
-                                                    first listing</a>
+                                                <p class="text-secondary lead">No properties found.</p>
+                                                <?php if (!empty($search) || !empty($status_filter) || !empty($category_filter)): ?>
+                                                    <a href="property_list.php" class="btn btn-sm btn-outline-primary">Clear Filters</a>
+                                                <?php else: ?>
+                                                    <a href="add_property.php" class="btn btn-sm btn-outline-primary">Post your
+                                                        first listing</a>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
@@ -264,50 +347,6 @@ unset($_SESSION['error_message']);
                                                 </div>
                                             </td>
                                             <td class="fw-bold text-primary">
-                                                $<?php echo number_format($property['price'], 2); ?></td>
-                                            <td>
-                                                <span class="small d-flex align-items-center gap-1">
-                                                    <i class="bi bi-geo-alt text-secondary"></i>
-                                                    <?php echo htmlspecialchars($property['location']); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                $status_class = 'bg-success';
-                                                $icon = 'bi-check-circle';
-                                                if ($property['status'] === 'Rented') {
-                                                    $status_class = 'bg-danger';
-                                                    $icon = 'bi-lock';
-                                                }
-                                                if ($property['status'] === 'Maintenance') {
-                                                    $status_class = 'bg-warning';
-                                                    $icon = 'bi-tools';
-                                                }
-                                                ?>
-                                                <span
-                                                    class="badge <?php echo $status_class; ?> d-inline-flex align-items-center gap-1">
-                                                    <i class="bi <?php echo $icon; ?>"></i>
-                                                    <?php echo htmlspecialchars($property['status']); ?>
-                                                </span>
-                                            </td>
-                                            <td class="text-end pe-4">
-                                                <div class="btn-group shadow-sm rounded-3 overflow-hidden">
-                                                    <a href="edit_property.php?id=<?php echo $property['id']; ?>"
-                                                        class="btn btn-sm btn-light border-end" title="Edit Listing">
-                                                        <i class="bi bi-pencil-square text-primary"></i>
-                                                    </a>
-                                                    <button class="btn btn-sm btn-light"
-                                                        onclick="confirmDelete(<?php echo $property['id']; ?>)"
-                                                        title="Delete Listing">
-                                                        <i class="bi bi-trash3 text-danger"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                                    <?php echo htmlspecialchars($property['title']); ?></div>
-                                                <div class="listing-subtitle-cell">
-                                                    <i class="bi bi-tag-fill me-1 small"></i><?php echo htmlspecialchars($property['type']); ?></div>
-                                            </td>
-                                            <td class="monthly-rent-text">
                                                 $<?php echo number_format($property['price'], 2); ?></td>
                                             <td>
                                                 <span class="small d-flex align-items-center gap-1">

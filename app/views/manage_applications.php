@@ -12,26 +12,45 @@ require_once __DIR__ . '/../../config/db_connect.php';
 
 $user_id = $_SESSION['user_id'];
 $user_role = $_SESSION['user_role'];
+$status_filter = $_GET['status'] ?? '';
+$property_filter = $_GET['property_id'] ?? '';
 
 // Fetch applications for properties owned by this user
 $conn = get_db_connection();
 
 // SQL to fetch applications along with property details
 // If admin, show all applications. If owner, show only applications for their properties.
-if ($user_role === 'admin') {
-  $sql = "SELECT ra.*, p.title as property_title, p.location as property_location, p.price as property_price
-            FROM rental_applications ra
-            JOIN properties p ON ra.property_id = p.id
-            ORDER BY ra.created_at DESC";
-  $stmt = mysqli_prepare($conn, $sql);
-} else {
-  $sql = "SELECT ra.*, p.title as property_title, p.location as property_location, p.price as property_price
-            FROM rental_applications ra
-            JOIN properties p ON ra.property_id = p.id
-            WHERE p.owner_id = ?
-            ORDER BY ra.created_at DESC";
-  $stmt = mysqli_prepare($conn, $sql);
-  mysqli_stmt_bind_param($stmt, "i", $user_id);
+$sql = "SELECT ra.*, p.title as property_title, p.location as property_location, p.price as property_price
+        FROM rental_applications ra
+        JOIN properties p ON ra.property_id = p.id
+        WHERE 1=1";
+
+$params = [];
+$types = "";
+
+if ($user_role !== 'admin') {
+  $sql .= " AND p.owner_id = ?";
+  $params[] = $user_id;
+  $types .= "i";
+}
+
+if (!empty($status_filter)) {
+  $sql .= " AND ra.status = ?";
+  $params[] = $status_filter;
+  $types .= "s";
+}
+
+if (!empty($property_filter)) {
+  $sql .= " AND ra.property_id = ?";
+  $params[] = $property_filter;
+  $types .= "i";
+}
+
+$sql .= " ORDER BY ra.created_at DESC";
+
+$stmt = mysqli_prepare($conn, $sql);
+if (!empty($params)) {
+  mysqli_stmt_bind_param($stmt, $types, ...$params);
 }
 
 mysqli_stmt_execute($stmt);
@@ -40,6 +59,18 @@ $result = mysqli_stmt_get_result($stmt);
 $applications = [];
 while ($row = mysqli_fetch_assoc($result)) {
   $applications[] = $row;
+}
+
+// Fetch user's properties for the filter dropdown
+$prop_sql = "SELECT id, title FROM properties";
+if ($user_role !== 'admin') {
+  $prop_sql .= " WHERE owner_id = $user_id";
+}
+$prop_sql .= " ORDER BY title";
+$prop_result = mysqli_query($conn, $prop_sql);
+$properties = [];
+while ($prop = mysqli_fetch_assoc($prop_result)) {
+  $properties[] = $prop;
 }
 
 close_db_connection($conn);
@@ -102,12 +133,50 @@ close_db_connection($conn);
   </header>
 
   <div class="container mb-5 pb-5">
+
+    <!-- Filters -->
+    <div class="card glass-panel border-0 mb-4 animate-up p-4">
+      <form action="" method="GET" class="row g-3">
+        <div class="col-md-5">
+          <select name="property_id" class="form-select border-0">
+            <option value="">All Properties</option>
+            <?php foreach ($properties as $prop): ?>
+              <option value="<?php echo $prop['id']; ?>" <?php echo $property_filter == $prop['id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($prop['title']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="col-md-5">
+          <select name="status" class="form-select border-0">
+            <option value="">All Statuses</option>
+            <option value="Pending" <?php echo $status_filter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
+            <option value="Approved" <?php echo $status_filter === 'Approved' ? 'selected' : ''; ?>>Approved</option>
+            <option value="Rejected" <?php echo $status_filter === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+        </div>
+      </form>
+    </div>
+
     <?php if (empty($applications)): ?>
       <div class="glass-panel p-5 rounded-4 text-center">
         <i class="bi bi-file-earmark-person display-1 text-muted opacity-25 mb-4 d-block"></i>
-        <h3 class="fw-bold">No applications yet.</h3>
-        <p class="text-secondary mb-4">You haven't received any rental applications for your properties.</p>
-        <a href="property_list.php" class="btn btn-primary px-4 py-2 rounded-pill">Manage Inventory</a>
+        <h3 class="fw-bold">No applications found.</h3>
+        <p class="text-secondary mb-4">
+          <?php if (!empty($status_filter) || !empty($property_filter)): ?>
+            Try adjusting your filters.
+          <?php else: ?>
+            You haven't received any rental applications for your properties.
+          <?php endif; ?>
+        </p>
+        <?php if (!empty($status_filter) || !empty($property_filter)): ?>
+          <a href="manage_applications.php" class="btn btn-outline-primary px-4 py-2 rounded-pill">Clear Filters</a>
+        <?php else: ?>
+          <a href="property_list.php" class="btn btn-primary px-4 py-2 rounded-pill">Manage Inventory</a>
+        <?php endif; ?>
       </div>
     <?php else: ?>
       <div class="row g-4">
