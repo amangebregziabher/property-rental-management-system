@@ -11,6 +11,7 @@ $user_role = strtolower($_SESSION['user_role'] ?? 'tenant');
 
 // Include database connection
 require_once __DIR__ . '/../../config/db_connect.php';
+require_once __DIR__ . '/../helpers/notification_helper.php';
 
 // Get filter parameters
 $status_filter = $_GET['status'] ?? '';
@@ -140,6 +141,15 @@ $stats_result = mysqli_stmt_get_result($stats_stmt);
 $stats = mysqli_fetch_assoc($stats_result);
 
 close_db_connection($conn);
+
+// Get pending applications count for notification badge
+$pending_count = 0;
+if ($user_role === 'owner' || $user_role === 'admin') {
+    // Re-open/use connection since stats logic might have closed it or we need fresh for simple helper
+    $conn = get_db_connection();
+    $pending_count = get_pending_applications_count($conn, $_SESSION['user_id']);
+    close_db_connection($conn);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -158,379 +168,14 @@ close_db_connection($conn);
         rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../public/assets/css/style.css?v=<?php echo time(); ?>">
-    <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --dark-bg: #0f0f23;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
 
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .main-content {
-            position: relative;
-            z-index: 1;
-            padding-top: 2rem;
-            padding-bottom: 4rem;
-        }
-
-        .stats-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .stats-card:hover::before {
-            opacity: 1;
-        }
-
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .stats-card.total .stats-icon {
-            background: var(--info-gradient);
-        }
-
-        .stats-card.pending .stats-icon {
-            background: var(--warning-gradient);
-        }
-
-        .stats-card.approved .stats-icon {
-            background: var(--success-gradient);
-        }
-
-        .stats-card.rejected .stats-icon {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        }
-
-        .filter-panel {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .application-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .application-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .status-badge {
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-pending {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-
-        .status-approved {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-        }
-
-        .status-rejected {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-        }
-
-        .btn-gradient {
-            background: var(--primary-gradient);
-            border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
-        .form-control,
-        .form-select {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            color: white;
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-            color: white;
-            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
-        }
-
-        .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .form-select option {
-            background: #1a1a2e;
-            color: white;
-        }
-
-        .page-header {
-            margin-bottom: 3rem;
-        }
-
-        .page-title {
-            color: white;
-            font-weight: 800;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .page-subtitle {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1.1rem;
-        }
-
-        .applicant-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .applicant-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-
-        .info-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 0.5rem;
-        }
-
-        .info-row i {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-action {
-            padding: 0.5rem 1rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            border: none;
-        }
-
-        .btn-view {
-            background: var(--info-gradient);
-            color: white;
-        }
-
-        .btn-approve {
-            background: var(--success-gradient);
-            color: white;
-        }
-
-        .btn-reject {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-        }
-
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .empty-state i {
-            font-size: 5rem;
-            opacity: 0.3;
-            margin-bottom: 1rem;
-        }
-
-        .navbar {
-            background: var(--card-bg) !important;
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .navbar-brand {
-            font-weight: 800;
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8) !important;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: white !important;
-        }
-
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-
-            .stats-card {
-                margin-bottom: 1rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn-action {
-                width: 100%;
-            }
-        }
-
-        /* Rejection Modal Styling */
-        .modal-content.glass-modal {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            color: white;
-        }
-
-        .modal-header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .rejection-reason-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            border-radius: 12px;
-            padding: 1rem;
-        }
-
-        .rejection-reason-input:focus {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #ff6b6b;
-            color: white;
-            box-shadow: 0 0 0 0.25rem rgba(255, 107, 107, 0.25);
-        }
-    </style>
 </head>
 
-<body>
+<body class="beautified-page">
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="../../public/index.php">PRMS</a>
+    <nav class="navbar navbar-expand-lg navbar-dark glass-nav sticky-top">
+        <div class="container-fluid mx-4">
+            <a class="navbar-brand text-gradient fs-3 fw-bold" href="../../public/index.php">PRMS</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -546,7 +191,12 @@ close_db_connection($conn);
                         </li>
                     <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link active" href="tenant_applications_list.php">Applications</a>
+                        <a class="nav-link active" href="tenant_applications_list.php">
+                            Applications
+                            <?php if ($pending_count > 0): ?>
+                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown"
@@ -567,21 +217,21 @@ close_db_connection($conn);
     <div class="main-content">
         <div class="container">
             <!-- Page Header -->
-            <div class="page-header">
+            <div class="mb-5 text-center text-md-start">
                 <?php if ($user_role === 'tenant'): ?>
-                    <h1 class="page-title">My Applications</h1>
-                    <p class="page-subtitle">Track the status of your rental applications</p>
+                    <h1 class="display-5 fw-bold text-white mb-2">My Applications</h1>
+                    <p class="lead text-white-50">Track the status of your rental applications</p>
                 <?php else: ?>
-                    <h1 class="page-title">Tenant Applications</h1>
-                    <p class="page-subtitle">Review and manage rental applications for your properties</p>
+                    <h1 class="display-5 fw-bold text-white mb-2">Tenant Applications</h1>
+                    <p class="lead text-white-50">Review and manage rental applications for your properties</p>
                 <?php endif; ?>
             </div>
 
             <!-- Statistics Cards -->
             <div class="row mb-4">
                 <div class="col-md-3 col-sm-6 mb-3">
-                    <div class="stats-card total">
-                        <div class="stats-icon">
+                    <div class="glass-panel p-4 h-100 border-start border-4 border-info">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-4 mb-3 p-3 bg-white bg-opacity-10 fs-2">
                             <i class="bi bi-file-earmark-text text-white"></i>
                         </div>
                         <h3 id="stat-total" class="text-white mb-0"><?php echo $stats['total']; ?></h3>
@@ -589,8 +239,8 @@ close_db_connection($conn);
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6 mb-3">
-                    <div class="stats-card pending">
-                        <div class="stats-icon">
+                    <div class="glass-panel p-4 h-100 border-start border-4 border-warning">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-4 mb-3 p-3 bg-white bg-opacity-10 fs-2">
                             <i class="bi bi-clock-history text-white"></i>
                         </div>
                         <h3 id="stat-pending" class="text-white mb-0"><?php echo $stats['pending']; ?></h3>
@@ -598,8 +248,8 @@ close_db_connection($conn);
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6 mb-3">
-                    <div class="stats-card approved">
-                        <div class="stats-icon">
+                    <div class="glass-panel p-4 h-100 border-start border-4 border-success">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-4 mb-3 p-3 bg-white bg-opacity-10 fs-2">
                             <i class="bi bi-check-circle text-white"></i>
                         </div>
                         <h3 id="stat-approved" class="text-white mb-0"><?php echo $stats['approved']; ?></h3>
@@ -607,8 +257,8 @@ close_db_connection($conn);
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6 mb-3">
-                    <div class="stats-card rejected">
-                        <div class="stats-icon">
+                    <div class="glass-panel p-4 h-100 border-start border-4 border-danger">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-4 mb-3 p-3 bg-white bg-opacity-10 fs-2">
                             <i class="bi bi-x-circle text-white"></i>
                         </div>
                         <h3 id="stat-rejected" class="text-white mb-0"><?php echo $stats['rejected']; ?></h3>
@@ -618,7 +268,7 @@ close_db_connection($conn);
             </div>
 
             <!-- Filter Panel -->
-            <div class="filter-panel">
+            <div class="glass-panel p-4 mb-4">
                 <form action="tenant_applications_list.php" method="GET" class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label text-white">Search Applicant</label>
@@ -665,21 +315,21 @@ close_db_connection($conn);
 
             <!-- Applications List -->
             <?php if (empty($applications)): ?>
-                <div class="empty-state">
-                    <i class="bi bi-inbox d-block"></i>
+                <div class="glass-panel text-center p-5 text-white-50">
+                    <i class="bi bi-inbox d-block display-1 mb-3 opacity-25"></i>
                     <h3 class="text-white mb-2">No Applications Found</h3>
                     <p class="text-white-50">There are no applications matching your criteria.</p>
-                    <a href="tenant_applications_list.php" class="btn btn-gradient mt-3">View All Applications</a>
+                    <a href="tenant_applications_list.php" class="btn btn-primary rounded-pill mt-3 px-4">View All Applications</a>
                 </div>
             <?php else: ?>
                 <?php foreach ($applications as $app): ?>
-                    <div class="application-card">
+                    <div class="glass-panel p-4 mb-4 position-relative">
                         <div class="row g-0 align-items-center">
                             <!-- Image Section -->
                             <div class="col-md-3 col-lg-2">
                                 <div class="position-relative h-100" style="min-height: 160px;">
                                     <?php if (!empty($app['image_path'])): ?>
-                                        <img src="../../storage/<?php echo htmlspecialchars($app['image_path']); ?>"
+                                        <img src="../../images/<?php echo htmlspecialchars($app['image_path']); ?>"
                                             class="img-fluid rounded-start h-100 w-100 object-fit-cover position-absolute top-0 start-0"
                                             alt="<?php echo htmlspecialchars($app['property_title']); ?>"
                                             style="border-radius: 20px;">
@@ -701,7 +351,7 @@ close_db_connection($conn);
                                                 <?php echo htmlspecialchars($app['property_title']); ?>
                                             </h4>
                                             <span id="status-badge-<?php echo $app['id']; ?>"
-                                                class="status-badge status-<?php echo strtolower($app['status']); ?>">
+                                                class="badge rounded-pill fs-6 px-3 py-2 <?php echo $app['status'] === 'Pending' ? 'bg-warning text-dark' : ($app['status'] === 'Approved' ? 'bg-success' : 'bg-danger'); ?>">
                                                 <?php echo $app['status']; ?>
                                             </span>
                                         </div>
@@ -758,7 +408,7 @@ close_db_connection($conn);
                                     <div
                                         class="col-lg-4 d-flex flex-column justify-content-center align-items-lg-end mt-3 mt-lg-0 gap-2">
                                         <?php if ($user_role !== 'tenant'): ?>
-                                            <button class="btn btn-view w-100 mb-2"
+                                            <button class="btn btn-info w-100 mb-2 rounded-pill text-white"
                                                 onclick="viewApplication(<?php echo $app['id']; ?>)">
                                                 <i class="bi bi-eye me-2"></i>View Full Details
                                             </button>
@@ -766,11 +416,11 @@ close_db_connection($conn);
                                             <div id="actions-container-<?php echo $app['id']; ?>" class="w-100">
                                                 <?php if ($app['status'] === 'Pending'): ?>
                                                     <div class="d-flex gap-2 w-100">
-                                                        <button class="btn btn-approve flex-grow-1"
+                                                        <button class="btn btn-success flex-grow-1 rounded-pill"
                                                             onclick="updateStatus(<?php echo $app['id']; ?>, 'Approved')">
                                                             <i class="bi bi-check-lg"></i> Approve
                                                         </button>
-                                                        <button class="btn btn-reject flex-grow-1"
+                                                        <button class="btn btn-danger flex-grow-1 rounded-pill"
                                                             onclick="updateStatus(<?php echo $app['id']; ?>, 'Rejected')">
                                                             <i class="bi bi-x-lg"></i> Reject
                                                         </button>
