@@ -303,50 +303,6 @@ unset($_SESSION['error_message']);
                                                     </button>
                                                 </div>
                                             </td>
-                                                    <?php echo htmlspecialchars($property['title']); ?></div>
-                                                <div class="listing-subtitle-cell">
-                                                    <i class="bi bi-tag-fill me-1 small"></i><?php echo htmlspecialchars($property['type']); ?></div>
-                                            </td>
-                                            <td class="monthly-rent-text">
-                                                $<?php echo number_format($property['price'], 2); ?></td>
-                                            <td>
-                                                <span class="small d-flex align-items-center gap-1">
-                                                    <i class="bi bi-geo-alt text-secondary"></i>
-                                                    <?php echo htmlspecialchars($property['location']); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                $status_class = 'bg-success';
-                                                $icon = 'bi-check-circle';
-                                                if ($property['status'] === 'Rented') {
-                                                    $status_class = 'bg-danger';
-                                                    $icon = 'bi-lock';
-                                                }
-                                                if ($property['status'] === 'Maintenance') {
-                                                    $status_class = 'bg-warning';
-                                                    $icon = 'bi-tools';
-                                                }
-                                                ?>
-                                                <span
-                                                    class="badge <?php echo $status_class; ?> d-inline-flex align-items-center gap-1">
-                                                    <i class="bi <?php echo $icon; ?>"></i>
-                                                    <?php echo htmlspecialchars($property['status']); ?>
-                                                </span>
-                                            </td>
-                                            <td class="text-end pe-4">
-                                                <div class="btn-group shadow-sm rounded-3 overflow-hidden">
-                                                    <a href="edit_property.php?id=<?php echo $property['id']; ?>"
-                                                        class="btn btn-sm btn-light border-end" title="Edit Listing">
-                                                        <i class="bi bi-pencil-square text-primary"></i>
-                                                    </a>
-                                                    <button class="btn btn-sm btn-light"
-                                                        onclick="confirmDelete(<?php echo $property['id']; ?>)"
-                                                        title="Delete Listing">
-                                                        <i class="bi bi-trash3 text-danger"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
