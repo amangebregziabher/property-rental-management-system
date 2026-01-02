@@ -61,14 +61,9 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] === 'owner' || $_SESS
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-lg mt-2 dropdown-menu-dark">
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
-                                    <li>
-                                        <a class="dropdown-item d-flex justify-content-between align-items-center" href="../app/views/property_list.php">
-                                            Owner Dashboard
-                                            <?php if (isset($pending_count) && $pending_count > 0): ?>
-                                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
-                                            <?php endif; ?>
-                                        </a>
-                                    </li>
+                                    <li><a class="dropdown-item" href="../app/views/property_list.php">Owner Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="../app/views/manage_applications.php">Manage
+                                            Applications</a></li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>

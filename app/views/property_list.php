@@ -103,12 +103,8 @@ unset($_SESSION['error_message']);
                         <a class="nav-link" href="tenant_view.php">Find Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="tenant_applications_list.php">
-                            Applications
-                            <?php if ($pending_count > 0): ?>
-                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
-                            <?php endif; ?>
-                        </a>
+                        <a class="nav-link" href="manage_applications.php">Applications</a>
+                        <a class="nav-link" href="tenant_applications_list.php">Applications</a>
                     </li>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 active" href="#"
@@ -141,7 +137,11 @@ unset($_SESSION['error_message']);
                         availability, and oversee your rental portfolio.</p>
                 </div>
                 <div class="col-lg-5 text-lg-end animate-up" style="animation-delay: 0.2s;">
-                    <a href="add_property.php" class="btn btn-light btn-lg rounded-pill px-5 py-3 fw-bold shadow-lg">
+                    <a href="manage_applications.php"
+                        class="btn btn-outline-light btn-lg rounded-pill px-4 py-3 fw-bold shadow-lg me-2">
+                        <i class="bi bi-file-earmark-person me-2"></i> Applications
+                    </a>
+                    <a href="add_property.php" class="btn btn-light btn-lg rounded-pill px-4 py-3 fw-bold shadow-lg">
                         <i class="bi bi-plus-lg me-2 text-primary"></i> Post New Listing
                     </a>
                 </div>
@@ -255,8 +255,54 @@ unset($_SESSION['error_message']);
                                                     </div>
                                                 <?php endif; ?>
                                             </td>
-                                             <td>
-                                                <div class="listing-title-cell">
+                                            <td>
+                                                <div class="fw-bold text-white">
+                                                    <?php echo htmlspecialchars($property['title']); ?>
+                                                </div>
+                                                <div class="small text-white-50 italic">
+                                                    <?php echo htmlspecialchars($property['type']); ?>
+                                                </div>
+                                            </td>
+                                            <td class="fw-bold text-primary">
+                                                $<?php echo number_format($property['price'], 2); ?></td>
+                                            <td>
+                                                <span class="small d-flex align-items-center gap-1">
+                                                    <i class="bi bi-geo-alt text-secondary"></i>
+                                                    <?php echo htmlspecialchars($property['location']); ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php
+                                                $status_class = 'bg-success';
+                                                $icon = 'bi-check-circle';
+                                                if ($property['status'] === 'Rented') {
+                                                    $status_class = 'bg-danger';
+                                                    $icon = 'bi-lock';
+                                                }
+                                                if ($property['status'] === 'Maintenance') {
+                                                    $status_class = 'bg-warning';
+                                                    $icon = 'bi-tools';
+                                                }
+                                                ?>
+                                                <span
+                                                    class="badge <?php echo $status_class; ?> d-inline-flex align-items-center gap-1">
+                                                    <i class="bi <?php echo $icon; ?>"></i>
+                                                    <?php echo htmlspecialchars($property['status']); ?>
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <div class="btn-group shadow-sm rounded-3 overflow-hidden">
+                                                    <a href="edit_property.php?id=<?php echo $property['id']; ?>"
+                                                        class="btn btn-sm btn-light border-end" title="Edit Listing">
+                                                        <i class="bi bi-pencil-square text-primary"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-light"
+                                                        onclick="confirmDelete(<?php echo $property['id']; ?>)"
+                                                        title="Delete Listing">
+                                                        <i class="bi bi-trash3 text-danger"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
                                                     <?php echo htmlspecialchars($property['title']); ?></div>
                                                 <div class="listing-subtitle-cell">
                                                     <i class="bi bi-tag-fill me-1 small"></i><?php echo htmlspecialchars($property['type']); ?></div>

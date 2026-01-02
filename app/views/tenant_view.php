@@ -123,14 +123,8 @@ close_db_connection($conn);
                             <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-sm mt-2">
                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">My Profile</a></li>
                                 <?php if ($_SESSION['user_role'] === 'owner' || $_SESSION['user_role'] === 'admin'): ?>
-                                    <li>
-                                        <a class="dropdown-item d-flex justify-content-between align-items-center" href="property_list.php">
-                                            Owner Dashboard
-                                            <?php if ($pending_count > 0): ?>
-                                                <span class="badge bg-danger rounded-circle notification-badge"><?php echo $pending_count; ?></span>
-                                            <?php endif; ?>
-                                        </a>
-                                    </li>
+                                    <li><a class="dropdown-item" href="property_list.php">Owner Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="manage_applications.php">Manage Applications</a></li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
