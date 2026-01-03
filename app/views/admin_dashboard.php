@@ -17,13 +17,14 @@ $user_role = $_SESSION['user_role'] ?? 'tenant';
 $conn = get_db_connection();
 
 // SQL differs based on role: Admin sees all
-$sql = "SELECT p.*, u.name as owner_name,
+$sql = "SELECT p.*, u.name as owner_name, c.name as type,
         (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_main DESC, id ASC LIMIT 1) as main_image
         FROM properties p 
         LEFT JOIN users u ON p.owner_id = u.id 
+        LEFT JOIN categories c ON p.category_id = c.id
         ORDER BY p.created_at DESC";
 
-// No bind param needed as admin sees all
+$stmt = mysqli_prepare($conn, $sql);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 

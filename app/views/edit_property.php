@@ -22,7 +22,9 @@ if (empty($property_id) || !is_numeric($property_id)) {
 $conn = get_db_connection();
 
 // Fetch property record
-$sql = "SELECT * FROM properties WHERE id = ?";
+$sql = "SELECT p.*, c.name as type FROM properties p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        WHERE p.id = ?";
 $stmt = mysqli_prepare($conn, $sql);
 mysqli_stmt_bind_param($stmt, "i", $property_id);
 mysqli_stmt_execute($stmt);
