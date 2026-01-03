@@ -15,8 +15,9 @@ if (empty($property_id) || !is_numeric($property_id)) {
 $conn = get_db_connection();
 
 // Fetch property details
-$sql = "SELECT p.*, u.name as owner_name FROM properties p 
+$sql = "SELECT p.*, u.name as owner_name, c.name as type FROM properties p 
         LEFT JOIN users u ON p.owner_id = u.id 
+        LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.id = ?";
 $stmt = mysqli_prepare($conn, $sql);
 mysqli_stmt_bind_param($stmt, "i", $property_id);
